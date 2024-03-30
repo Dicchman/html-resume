@@ -1,0 +1,73 @@
+﻿angular.module("eahara")
+        .controller("aboutusController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+                ////////////// FAQ ////////////////
+                $scope.Location = [];
+                $scope.location = {
+                    Name: "",
+                },
+                MainService.LocationInDropdown().then(function (response) {
+                    if (response) {
+                        $scope.Location = response.data;
+                    }
+                }, function () {
+                    $scope.SLoad = false;
+                })
+
+                ////////////// end FAQ ////////////////
+
+                ///////////////// Feedback ///////////
+
+                $scope.Feedback = [];
+                $scope.feedback = {
+                    Name: "",
+                    Designation: "",
+                    PhoneNo: "",
+                    Description : "",
+                },
+                $scope.Skip = 0;
+                MainService.GetAllFeedback($scope.Skip).then(function (response) {
+                    if (response) {
+                        $scope.Feedback = response.data;
+                    }
+                }, function () {
+                    $scope.SLoad = false;
+                })
+
+
+                $scope.SelectedFeeback = {};
+                $scope.showModalFeedback = function (data) {
+                    $scope.SelectedFeeback = data;
+                    $('#showModalFeedback').modal('show');
+                }
+                $scope.AddData = function () {
+                    if ($scope.feedback.Name == "") {
+                        toastr.warning("Enter your name");
+                    } else if ($scope.feedback.PhoneNo == "") {
+                        toastr.warning("Enter your mobile no");
+                    } else if ($scope.feedback.Description == "") {
+                        toastr.warning("Enter feedback");
+                    }else {
+                        $scope.load = 1;
+                        MainService.AddFeedback($scope.feedback).then(function (response) {
+                            if (response.data) {
+                                toastr.success("Success");
+                                $('#showModalFeedback').modal('hide');
+                                $scope.load = 0;
+                            } else {
+                                toastr.error("Error");
+                                $scope.load = 0;
+                            }
+                        }, function (err) {
+                            toastr.error("Network Error");
+                            $scope.load = 0;
+                        });
+                    }
+                }
+
+                ////////////// end Feedback ////////////////
+
+
+                
+            }])

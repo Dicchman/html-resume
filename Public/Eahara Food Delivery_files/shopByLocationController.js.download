@@ -1,0 +1,177 @@
+﻿angular.module("eahara")
+    .controller("shopByLocationController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+
+            $scope.InitMap = function () {
+                var geocoder;
+                var Mylat = 18.1019;
+                var Mylong = 78.8521;
+                if ($scope.CurrentLocationAxis != null) {
+                    Mylat = $scope.CurrentLocationAxis.lat;
+                    Mylong = $scope.CurrentLocationAxis.lng;
+                }
+                $scope.Location = {};
+                var markers = [];
+                var mapOptions = {
+                    center: {
+                        lat: Mylat,
+                        lng: Mylong
+                    },
+                    zoom: 13,
+                    disableDefaultUI: true,
+                    scrollwheel: true,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+                var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+                $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+                geocoder = new google.maps.Geocoder();
+                var input = (document.getElementById('pac-input'));
+                var autocomplete = new google.maps.places.Autocomplete(input);
+                autocomplete.bindTo('bounds', map);
+                $scope.disableTap = function () {
+                    var container = document.getElementsByClassName('pac-container');
+                    angular.element(container).attr('data-tap-disabled', 'true');
+                    var backdrop = document.getElementsByClassName('backdrop');
+                    angular.element(backdrop).attr('data-tap-disabled', 'true');
+                    angular.element(container).on("click", function () {
+                        document.getElementById('pac-input').blur();
+                    });
+                };
+
+                function setMapOnAll(map) {
+                    for (var i = 0; i < markers.length; i++) {
+                        markers[i].setMap(map);
+                    }
+                }
+
+                function geocodePosition(pos) {
+                    geocoder.geocode({
+                        latLng: pos
+                    }, function (responses) {
+                        if (responses && responses.length > 0) {
+                            $scope.$apply(function () {
+                                $scope.search = responses[0].formatted_address;
+                                document.getElementById('pac-input').value = responses[0].formatted_address;
+                               // $scope.Booking.Address = responses[0].formatted_address;
+                            });
+                        } else {
+                            console.log('Cannot determine address at this location.');
+                        }
+                    });
+                }
+
+                google.maps.event.addListener(autocomplete, 'place_changed', function () {
+                    var place = autocomplete.getPlace();
+                    if (!place.geometry) {
+                        return;
+                    }
+                    if (place.geometry.viewport) {
+                        map.fitBounds(place.geometry.viewport);
+
+
+                        var secondobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[0]];
+                        var firstobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[1]];
+
+                        var ClLongitude = (firstobj.j + firstobj.l) / 2;
+                        var ClLattitude = (secondobj.l + secondobj.j) / 2;
+
+
+                        $scope.Booking.Lat = ClLattitude;
+                        $scope.Booking.Lng = ClLongitude;
+                        $scope.ApplyMapFilter();
+                    } else {
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(17);
+                        var ClLongitude = place.geometry.location.lng();
+                        var ClLattitude = place.geometry.location.lat();
+                        $scope.Booking.Lat = ClLattitude;
+                        $scope.Booking.Lng = ClLongitude;
+                        $scope.ApplyMapFilter();
+                    }
+                    setMapOnAll(null);
+                    google.maps.event.addListener(map, 'center_changed', function () {
+                        var ClLattitude = map.getCenter().lat();
+                        var ClLongitude = map.getCenter().lng();
+                        $scope.Booking.Lat = ClLattitude;
+                        $scope.Booking.Lng = ClLongitude;
+                        $scope.ApplyMapFilter();
+                        geocodePosition(map.getCenter());
+                    });
+                    $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+
+
+                });
+            }
+
+
+
+            $scope.Init = function () {
+
+                $scope.Booking = {
+                    Lat :"",
+                    Lng :"",
+                }
+
+                $scope.NearShops = [];
+                $scope.CurrentLocation = "";
+                $scope.Load = false;
+                $scope.CurrentLocationAxis = {};
+
+                $scope.now = new Date();
+                $scope.Time = $scope.now.getHours();
+                $scope.Minutes = $scope.now.getMinutes();
+                $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                $scope.CurrentTime = parseFloat($scope.CurrentTime);
+
+                navigator.geolocation.getCurrentPosition(function (location) {
+
+                    var loc = {};
+                    loc.lng = location.coords.longitude;
+                    loc.lat = location.coords.latitude;
+                    $scope.CurrentLocationAxis = loc;
+                    $scope.InitMap();
+                    $scope.Load = true;
+                    MainService.NearShopsInHome2(loc).then(function (response) {
+                        if (response) {
+                            $scope.NearShops = response.data;
+                        }
+                        $scope.Load = false;
+                    }, function (err) {
+                            $scope.Load = false;
+                        })
+
+                });
+
+            }
+            $scope.Init();
+
+          
+
+
+            $scope.ApplyMapFilter = function () {
+                $scope.Load = true;
+                var loc = {};
+                loc.lng = $scope.Booking.Lng;
+                loc.lat = $scope.Booking.Lat;
+
+                MainService.NearShopsInHome2(loc).then(function (response) {
+                    if (response) {
+                        $scope.NearShops = response.data;
+                    }
+                    $scope.Load = false;
+                }, function (err) {
+                    $scope.Load = false;
+                })
+            }
+
+           
+            $scope.goToDetails = function (Id) {
+                $state.go('ShopDetails', {
+                    ShopId: Id
+                });
+            }
+
+    
+
+        }])

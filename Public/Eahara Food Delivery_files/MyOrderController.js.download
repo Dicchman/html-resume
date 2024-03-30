@@ -1,0 +1,191 @@
+﻿angular.module("eahara")
+    .controller("MyOrderController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+                $scope.Shop = [];
+                MainService.ShopsInDropdown().then(function (response) {
+                    $scope.Shop = response.data;
+                })
+                $scope.Item = [];
+                MainService.ItemsInDropdown().then(function (response) {
+                    $scope.Item = response.data;
+                })
+
+                $scope.Location = [];
+                MainService.LocationInDropdown().then(function (response) {
+                    $scope.Location = response.data;
+                })
+
+                $scope.Bookings = {};
+
+                $scope.BookingSource = new kendo.data.DataSource({
+                    batch: true,
+                    transport: {
+                        read: function (o) {
+                            o.data.CustomerId = $scope.TokenInfo.CustomerId;
+                            MainService.CustomerBookingsInView(o.data).then(function (response) {
+                                o.success(response.data);
+                            }, function (err) {
+                                o.success({
+                                    Data: []
+                                });
+                                toastr.error("Network Error");
+                            })
+                        },
+                    },
+                    change: function (data) { },
+                    schema: {
+                        data: "Data",
+                        total: "Total",
+                        model: {
+                            id: "Id",
+                            fields: {
+                                Description: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                RefNo: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                Time: {
+                                    type: "DateTime",
+                                    editable: false,
+                                },
+                                Date: {
+                                    type: "DateTime",
+                                    editable: false,
+                                },
+                                "Location.Name": {
+                                    type: "string",
+                                    editable: false,
+                                },"Status.Name": {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                Count: {
+                                    type: "int",
+                                    editable: false,
+                                },
+                                Address: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                RefNo: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                ItemId: {
+                                    type: "number",
+                                    editable: false,
+                                },
+                                PromoOfferPrice: {
+                                    type: "number",
+                                    editable: false,
+                                },
+                                LocationId: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                MobileNo: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                                OrderDate: {
+                                    type: "DateTime",
+                                    editable: false,
+                                },
+                                Remarks: {
+                                    type: "string",
+                                    editable: false,
+                                },
+                            }
+                        }
+                    },
+
+                    serverPaging: true,
+                    serverSorting: true,
+                    pageSize: 10,
+                });
+                $scope.BookingGridOptions = {
+                    editable: false,
+                    pageable: true,
+                    height: 800,
+                    resizable: true,
+                    dataSource: $scope.BookingSource,
+                    pageSize: 10,
+                    sortable: true,
+                    scrollable: true,
+                    groupable: false,
+                    filterable: true,
+                    columns: [
+                        {
+                            field: "Date",
+                            title: "Date",
+                            template: "<p>{{dataItem.Date | date: 'dd/MM/yyyy'}}</p>"
+                        },
+                        {
+                            field: "RefNo",
+                            title: "RefNo",
+                        },
+                        {
+                            field: "Address",
+                            title: "Address",
+                        },
+                        {
+                            field: "OrderDate",
+                            title: "OrderDate",
+                            template: "<p>{{dataItem.OrderDate | date: 'dd/MM/yyyy  @ h:mma'}}</p>"
+                        },
+                        {
+                            field: "Time",
+                            title: "Time",
+                        },
+                        {
+                            field: "PromoOfferPrice",
+                            title: "Applied Special Offer",
+                        },
+                        {
+                            field: "Total",
+                            title: "Total",
+                        },
+                        {
+                            field: "Status.Name",
+                            title: "Status",
+                        },
+                        {
+                            title: "Options",
+                            width: "150px",
+                            template: "<button class='btn btn-primary btn-sm'  ng-click='ViewDetails(dataItem)'> View </button>",
+                        }
+                    ],
+                };
+
+                $scope.SelectedData = {};
+                $scope.ViewDetails = function (data) {
+                    $scope.SelectedData = data;
+                    MainService.BookingDetailsById(data.Id).then(function (response) {
+                        if (response) {
+                            $scope.Bookings = response.data;
+                            $('#bookingView').modal('show');
+                        }
+                    })
+                }
+
+                $scope.CancelItem = function () {
+                    var data = {
+                        id: $scope.Bookings.Id,
+                        CancelRemarks: $scope.Bookings.CancelRemarks,
+                    }
+                    MainService.CancelBooking(data).then(function (response) {
+                        if (response) {
+                            toastr.success("Success");
+                            $('#bookingView').modal('hide');
+                            $("#booking-master-grid").data("kendoGrid").dataSource.read();
+                        }
+                    }, function () {
+                        toastr.error("Network Error");
+                    })
+                }
+
+            }]);

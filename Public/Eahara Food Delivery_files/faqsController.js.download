@@ -1,0 +1,23 @@
+﻿angular.module("eahara")
+        .controller("faqsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+                ////////////// FAQ ////////////////
+                $scope.FAQ = [];
+                $scope.search = {
+                    Question: "",
+                    Answer: "",
+                },
+                MainService.FAQInHome().then(function (response) {
+                    if (response) {
+                        $scope.FAQ = response.data;
+                    }
+                }, function () {
+                    $scope.SLoad = false;
+                })
+
+                ////////////// end FAQ ////////////////
+
+
+
+            }])

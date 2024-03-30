@@ -1,0 +1,212 @@
+﻿(function () {
+    'use strict';
+    angular.module('eahara', ['ui.router', 'ui.bootstrap', 'ngCookies', 'LocalStorageModule', 'ngLoader', 'kendo.directives', 'jkAngularRatingStars'])
+        .value('app.config', {
+
+            // basePath: 'http://localhost:52426/'
+            basePath: 'https://eahara.ainsoftsolutions.com/'
+
+        })
+        .config(['$stateProvider', '$urlRouterProvider', '$locationProvider',
+        function ($stateProvider, $urlRouterProvider, $locationProvider) {
+
+                $urlRouterProvider.otherwise('init/home');
+                $stateProvider
+
+                    ///////////// *************** Home *********** //////////
+
+                    .state("init", {
+                        abstract: true,
+                        url: "/init",
+                        templateUrl: "Templates/init.tpl.html",
+                        controller: "InitController",
+                    })
+
+
+                    .state("Terms", {
+                        url: "/Terms",
+                        templateUrl: "Templates/Terms.tpl.html",
+                        controller: "aboutusController",
+                    })
+
+
+                    .state("Privacy", {
+                        url: "/Privacy",
+                        templateUrl: "Templates/Privacy.tpl.html",
+                    })
+
+                    .state("home", {
+                        parent: "init",
+                        url: "/home",
+                        templateUrl: "Templates/home.tpl.html",
+                        controller: "HomeController",
+                    })
+
+                    .state("offers", {
+                        parent: "init",
+                        url: "/offers",
+                        templateUrl: "Templates/offers.tpl.html",
+                        controller: "OffersController",
+                    })
+
+                    .state("contactus", {
+                        parent: "init",
+                        url: "/contactus",
+                        templateUrl: "Templates/contactus.tpl.html",
+                    })
+
+                    .state("services", {
+                        parent: "init",
+                        url: "/services",
+                        templateUrl: "Templates/services.tpl.html",
+                    })
+
+                    .state("aboutus", {
+                        parent: "init",
+                        url: "/aboutus",
+                        templateUrl: "Templates/aboutus.tpl.html",
+                        controller: "aboutusController",
+                    })
+
+                    .state("faqs", {
+                        parent: "init",
+                        url: "/faqs",
+                        templateUrl: "Templates/faqs.tpl.html",
+                        controller: "faqsController",
+                    })
+
+                    .state("login", {
+                        parent: "init",
+                        url: "/login",
+                        templateUrl: "Templates/Login.tpl.html",
+                        controller: "LoginController",
+                    })
+
+                    .state("ShopCategories", {
+                        parent: "init",
+                        url: "/ShopCategories",
+                        templateUrl: "Templates/ShopCategories.tpl.html",
+                    })
+
+                    .state("Shop", {
+                        parent: "init",
+                        url: "/Shop/:CategoryId",
+                        templateUrl: "Templates/Shop.tpl.html",
+                        controller: "ShopController",
+                    })
+
+                    .state("ShopDetails", {
+                        parent: "init",
+                        url: "/ShopDetails/:ShopId/:Name",
+                        templateUrl: "Templates/ShopDetails.tpl.html",
+                        controller: "ShopDetailsController",
+                    })
+
+                    .state("cart", {
+                        parent: "init",
+                        url: "/cart",
+                        templateUrl: "Templates/cart.tpl.html",
+                        controller: "cartController",
+                    })
+
+                    .state("CheckOut", {
+                        parent: "init",
+                        url: "/checkOut",
+                        templateUrl: "Templates/CheckOut.tpl.html",
+                        controller: "CheckOutController",
+                    })
+
+                    .state("items", {
+                        parent: "init",
+                        url: "/items/:ItemCatId",
+                        templateUrl: "Templates/items.tpl.html",
+                        controller: "itemsController",
+                    })
+
+                    .state("ItemsDetails", {
+                        parent: "init",
+                        url: "/ItemsDetails/:ItemId/:Name",
+                        templateUrl: "Templates/ItemsDetails.tpl.html",
+                        controller: "ItemsDetailsController",
+                    })
+
+                    .state("Search", {
+                        parent: "init",
+                        url: "/Search/:Keyword",
+                        params: null,
+                        templateUrl: "Templates/Search.tpl.html",
+                        controller: "SearchController",
+                    })
+
+                    .state("offerItems", {
+                        parent: "init",
+                        url: "/offerItems/:OfferId",
+                        templateUrl: "Templates/offerItems.tpl.html",
+                        controller: "offerItemsController",
+                    })
+
+                    .state("register", {
+                        url: "/register",
+                        parent: "init",
+                        templateUrl: "Templates/register.tpl.html",
+                        controller: "registerController",
+                    })
+
+                    .state("TroubleLogin", {
+                        url: "/TroubleLogin",
+                        parent: "init",
+                        templateUrl: "Templates/TroubleLogin.tpl.html",
+                        controller: "TroubleLoginController",
+                    })
+
+                    .state("MyOrder", {
+                        url: "/MyOrder",
+                        parent: "init",
+                        templateUrl: "Templates/MyOrder.tpl.html",
+                        controller: "MyOrderController",
+                    })
+
+                    .state("customerProfile", {
+                        url: "/customerProfile",
+                        parent: "init",
+                        templateUrl: "Templates/customerProfile.tpl.html",
+                        controller: "customerProfileController",
+                    })
+
+                    .state("customerCPassword", {
+                        url: "/customerCPassword",
+                        parent: "init",
+                        templateUrl: "Templates/customerCPassword.tpl.html",
+                    })
+
+
+                    .state("shopByLocation", {
+                        url: "/shopByLocation",
+                        parent: "init",
+                        templateUrl: "Templates/shopByLocation.tpl.html",
+                        controller: "shopByLocationController",
+                    })
+
+                    .state("locations", {
+                        url: "/locations",
+                        parent: "init",
+                        templateUrl: "Templates/locations.tpl.html",
+                        controller: "locationsController",
+                    })
+
+
+
+        }])
+
+
+        .config(['localStorageServiceProvider', function (localStorageServiceProvider) {
+            localStorageServiceProvider
+                .setPrefix('eahara')
+                .setStorageType('sessionStorage')
+                .setNotify(true, true);
+    }])
+        .config(['$httpProvider', function ($httpProvider) {
+            $httpProvider.interceptors.push("AuthInterceptor")
+    }]);
+
+})();

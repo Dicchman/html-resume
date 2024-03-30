@@ -1,0 +1,42 @@
+﻿angular.module("eahara")
+    .controller("itemsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.init = function () {
+
+                $scope.Items = [];
+                $scope.Categories = [];
+
+                if ($stateParams.ItemCatId != null) {
+
+                    MainService.ItemsByCatId($stateParams.ItemCatId, $scope.LocInfo.LocationId).then(function (res) {
+                        $scope.Items = res.data;
+                    })
+                }
+
+                MainService.ItemCategoryInDropdown().then(function (response) {
+                    if (response) {
+                        $scope.Categories = response.data;
+                    }
+                }, function () {
+                    $scope.SLoad = false;
+                })
+
+            }
+            $scope.init();
+
+            $scope.goToItems = function (Id) {
+                $state.go('items', {
+                    ItemCatId: Id
+                });
+            }
+
+            $scope.goToDetails = function (data) {
+                $state.go('ItemsDetails', {
+                    ItemId: data.Id,
+                    Name: data.Name,
+                });
+            }
+
+
+        }])

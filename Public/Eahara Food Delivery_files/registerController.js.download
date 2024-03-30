@@ -1,0 +1,122 @@
+﻿angular.module("eahara")
+    .controller("registerController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.init = function () {
+
+                $scope.View = 0;
+
+                $scope.Register = {
+                    Name: "",
+                    Email: "",
+                    MobileNo: "",
+                    TelephoneNo: "",
+                    Address: "",
+                    Location: "",
+                    IsCheckedTerms: false,
+                    IsChecked: false,
+                }
+
+                $scope.User = {
+                    UserName: "",
+                    Password: "",
+                    CPassword: ""
+                }
+
+                $scope.load = false;
+                $scope.Otp2 = "";
+                $scope.Otp = "";
+
+                $scope.Methods = [];
+                MainService.MMethodInDropdown().then(function (res) {
+                    $scope.Methods = res.data;
+                })
+
+
+            }
+            $scope.init();
+
+            $scope.SendOtp = function () {
+                if ($scope.Register.MobileNo == "") {
+                    toastr.warning("Enter Mobile No");
+                } else if ($scope.Register.MobileNo.length != 10) {
+                    toastr.warning("Enter Valid Mobile No");
+                } else {
+                    $scope.load = true;
+                    MainService.SendRegisterOtp($scope.Register.MobileNo).then(function (response) {
+                        if (response.data == 2) {
+                            toastr.error("Mobile No Already Registered !");
+                        } else if (response.data == 0) {
+                            toastr.error("Network Error");
+                        } else {
+                            toastr.success("OTP Send");
+                            $scope.View = 1;
+                            $scope.Otp = response.data;
+                        }
+                        $scope.load = false;
+                    }, function (err) {
+                        $scope.load = false;
+                        toastr.error("Network Error");
+                    });
+                }
+            }
+
+            $scope.CheckOtp = function () {
+
+                if ($scope.Register.Otp != $scope.Otp) {
+                    toastr.warning("OTP Not Matching");
+                } else {
+                    $scope.View = 2;
+                }
+            };
+
+
+            $scope.RegisterNow = function () {  
+
+                if ($scope.User.Password == "") {
+                    toastr.warning("Enter Password");
+                } else if ($scope.User.CPassword == "") {
+                    toastr.warning("Confirm Password");
+                } else if ($scope.User.Password != $scope.User.CPassword) {
+                    toastr.warning("Password Missmatch");
+                } else if ($scope.Register.IsCheckedTerms != true) {
+                    toastr.warning("You must agree to the terms and conditions before register ");
+                } else {
+                    
+                    $scope.Register.UserName = $scope.Register.MobileNo;
+                    $scope.Register.Password = $scope.User.Password;
+                    $scope.load = true;
+
+                    $scope.Register.CustomerMMethods = [];
+                    angular.forEach($scope.Methods, function (e) {
+                        if (e.IsChecked == true) {
+                            var temp = {
+                                MMethodId : e.Id,
+                            }
+                            $scope.Register.CustomerMMethods.push(temp);
+                        }
+                    });
+
+
+                    MainService.RegisterCustomer($scope.Register).then(function (response) {
+                        if (response.data == 1) {
+                            toastr.success("Successfully Registered");
+                            $state.go("login");
+                        } else if (response.data == 2) {
+                            toastr.success("Username Already Registered");
+                            $scope.View = 0;
+                        } else {
+                            toastr.error("Network Error");
+                        }
+                        $scope.load = false;
+                    }, function (err) {
+                        $scope.load = false;
+                        toastr.error("Network Error");
+                    });
+                }
+            }
+
+           
+            
+
+        }]);

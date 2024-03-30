@@ -1,0 +1,272 @@
+﻿angular.module("eahara")
+    .controller("ShopDetailsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService", "CookiesServices",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService, CookiesServices) {
+
+            $scope.init = function () {
+
+                $scope.now = new Date();
+                $scope.Time = $scope.now.getHours();
+                $scope.Minutes = $scope.now.getMinutes();
+                $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                $scope.CurrentTime = parseFloat($scope.CurrentTime);   
+
+                $scope.Shop = {};
+                $scope.selectedItemCat = {};
+                $scope.Shops = [];
+                $scope.ItemCats = [];
+                $scope.Items = [];
+                $scope.Reviews = [];
+                $scope.ItemsLoad = false;
+
+                if ($stateParams.ShopId != null) {
+
+                    MainService.ShopDetailById($stateParams.ShopId).then(function (res) {
+                        $scope.Shop = res.data;
+                        //GetShopItemsByShopId
+                        MainService.getShopItemsForFirstLoad($scope.Shop.Id).then(function (res) {
+                            $scope.Items = res.data;
+                            $scope.ViewValPdt = -1;
+                            // $scope.GetShopItemsHavingOffer();
+                        }, function (err) {
+                            // $scope.GetShopItemsHavingOffer();
+                        });
+
+                        MainService.GetSimilarShops($scope.Shop.Id, $scope.LocInfo.LocationId).then(function (res) {
+                            $scope.Shops = res.data;
+                        })
+
+                        MainService.getShopReviews($scope.Shop.Id).then(function (res) {
+                            $scope.Reviews = res.data;
+                        })
+
+                        MainService.getShopItemCats($scope.Shop.Id).then(function (res) {
+                            $scope.ItemCats = res.data;
+                           // $scope.GetShopItemsHavingOffer();
+                        }, function (err) {
+                           // $scope.GetShopItemsHavingOffer();
+                        });
+
+                        
+                    })
+                }
+
+                $scope.ViewVal = 0;
+                $scope.ViewValPdt = 0;
+
+                $scope.Review = {
+                    Description: "",
+                    Name : "",
+                    MobileNo : "",
+                    EmailId : "",
+                    Rating : 0,
+                }
+
+            }
+           
+
+            $scope.BookValuechange = function () {
+                if ($scope.BookValue == 0){
+                    $scope.BookValue = 1;
+                } else {
+                    $scope.BookValue = 0;
+                }
+            }
+
+            $scope.getAllItems = function () {
+                $scope.Items = [];
+                $scope.ItemsLoad = true;
+                $scope.ViewValPdt = -1;
+                //GetShopItemsByShopId
+                MainService.getShopItemsForFirstLoad($scope.Shop.Id).then(function (res) {
+                    $scope.Items = res.data;
+                    $scope.ItemsLoad = false;
+                }, function (err) {
+                    $scope.ItemsLoad = false;
+                    // $scope.GetShopItemsHavingOffer();
+                });
+            }
+
+            $scope.GetShopItemsHavingOffer = function () {
+                $scope.Items = [];
+                $scope.ItemsLoad = true;
+                $scope.ViewValPdt = 0;
+                MainService.GetShopItemsHavingOffer($scope.Shop.Id).then(function (response) {
+                    if (response) {
+                        $scope.ItemsLoad = false;
+                        var item = {
+                            Name: "Todays Offers",
+                            Items: response.data
+                        }
+                        $scope.Items.push(item);
+                        if ($scope.Items.length <= 0) {
+                            toastr.info("Currently No Offers Available On " + $scope.Shop.Name);
+                            if ($scope.ItemCats.length > 0){
+                                $scope.GetShopCatItems($scope.ItemCats[0])
+                            }                           
+                        }
+                    } else {
+                        $scope.ItemsLoad = false;
+                        toastr.warning("Failed");
+                    }
+                }, function (err) {
+                    toastr.error("Network Error");
+                    $scope.ItemsLoad = false;
+                });
+            }
+
+            $scope.GetShopCatItems = function (data) {
+                $scope.selectedItemCat = data;
+                $scope.Items = [];
+                $scope.ItemsLoad = true;
+                $scope.ViewValPdt = 1;
+                MainService.GetShopCatItems($scope.Shop.Id, data.Id).then(function (response) {
+                    if (response) {
+                        $scope.ItemsLoad = false;
+                        var cat = "";
+                        angular.forEach($scope.ItemCats, function (e) {
+                            if (e.Id == data.Id) {
+                                cat = e.Name;
+                            }
+                        });
+                        
+                        var item = {
+                            Name: cat,
+                            Items: response.data
+                        }
+                        $scope.Items.push(item);
+                    } else {
+                        $scope.ItemsLoad = false;
+                        toastr.warning("Failed");
+                    }
+                }, function (err) {
+                    toastr.error("Network Error");
+                    $scope.ItemsLoad = false;
+                });
+            }
+
+            $scope.SelectedImage = {};
+            $scope.showModal = function (data) {
+                $scope.SelectedImage = data;
+                $('#showModal').modal('show');
+            }
+
+            $scope.SelectedImage2 = {};
+            $scope.showModal2 = function (data) {
+                $scope.SelectedImage2 = data;
+                $('#showModal2').modal('show');
+            }
+
+            $scope.SelectedItem = {};
+            $scope.showModalItem = function (data) {
+                $scope.SelectedItem = data;
+                $('#showModalItem').modal('show');
+            }
+
+            $scope.goToDetails = function (data) {
+                $state.go('ShopDetails', {
+                    ShopId: data.Id,
+                    Name: data.Name,
+                });
+            }
+
+            $scope.AddReview = function () {
+                $scope.Load = false;
+                if ($scope.Review.Name == "") {
+                    toastr.warning("Enter Name");
+                } else if ($scope.Review.MobileNo == "") {
+                    toastr.warning("Enter Mobile No");
+                } else if ($scope.Review.Rating == 0) {
+                    toastr.warning("Give Rating");
+                } else if ($scope.Review.Description == "") {
+                    toastr.warning("Enter Review");
+                } else {
+                    $scope.Load = true;
+                    $scope.Review.ShopId = $scope.Shop.Id;
+                    MainService.AddReview($scope.Review).then(function (response) {
+                        if (response) {
+                            $scope.Load = false;
+                            toastr.success("Thanks for your review");
+                            $scope.Review = {
+                                Description: "",
+                                Name: "",
+                                MobileNo: "",
+                                EmailId: "",
+                                Rating: 0,
+                            }
+                        } else {
+                            $scope.Load = false;
+                            toastr.warning("Failed");
+                        }
+                    }, function (err) {
+                        toastr.error("Network Error");
+                        $scope.Load = false;
+                    });
+                }
+            }
+
+         
+            /////////// add to cart //////////            
+
+            var cookieKey = 'eaharacart'; //cookie key
+            $scope.initMyCart = function () {                
+                $scope.ordersToCheckout = [];
+                CookiesServices.init(cookieKey); //initializing cookie  
+                var cartCookies = CookiesServices.getCookie(cookieKey); //store cookie in cartCookies 
+                if (cartCookies.length > 0) {
+                    $scope.ordersToCheckout = cartCookies; //store cookies into our orders to checkout 
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        $scope.SelectedShopId = e.ShopId;
+                    });
+                }
+            }
+            $scope.initMyCart();
+
+            $scope.AddToCart = function (item) {
+
+                if ($scope.Shop.StartTime > $scope.CurrentTime || $scope.Shop.EndTime < $scope.CurrentTime) {
+                    toastr.info("Shop Closed Cannot Process Now");
+                } else if ($scope.Shop.Id != $scope.SelectedShopId && $scope.ordersToCheckout.length > 0) {
+                    toastr.info("To add items from another retsurant first complete this order and make a another order from the required resturant   * you cannot add items from multiple resturants in single order*");
+                } else if (item.InActive == true) {
+                    toastr.info("Sorry Item Not Available Now ! ");
+                } else if (item.Quantity <= 0) {
+                    toastr.info("Invalid Quantity ! ");
+                } else {
+                                       
+                    $scope.ToCart = {
+                        Id: item.Id,
+                        ShopId: $scope.Shop.Id,
+                        Shop: $scope.Shop.Name,
+                        Name: item.Name,
+                        Price: item.Price,
+                        DiscountPrice: item.OfferPrice,
+                        DelCharge: $scope.Shop.DeliveryCharge,
+                        Image: item.Image,
+                        Quantity: item.Quantity,
+                    }
+
+                    $scope.isThere = false;
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        if (e.Id == item.Id) {
+                            $scope.isThere = true;
+                            e.Quantity = e.Quantity + item.Quantity;
+                            e.Price = item.Price;
+                            e.DiscountPrice = item.OfferPrice;
+                        }
+                    });
+                    
+                    if ($scope.isThere == false) {
+                        $scope.ordersToCheckout.push($scope.ToCart);
+                    }
+
+                    CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+                    $scope.updateCart();
+                    item.Quantity = 1;
+                    toastr.success("Successfully Added to Cart");
+                    $scope.initMyCart();
+                }
+            }
+
+
+            $scope.init();
+        }])

@@ -1,0 +1,183 @@
+﻿angular.module("eahara")
+        .controller("LoginController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+                (function init() {
+
+                    $scope.loadingMessage = "Processing...";
+                    $scope.IsLoggedIn = false;
+
+                    $scope.TokenInfo = AuthenticationService.getTokenInfo();
+                    if ($scope.TokenInfo != null) {
+                        $scope.IsLoggedIn = true;
+                    }
+
+                    $scope.load = false;
+                    $scope.success = false;
+                    $scope.error = false;
+                    $scope.loginError = false;
+                    $scope.SelectedImage = {};
+                    $scope.Bookings = [];
+                    $scope.Feedbacks = [];
+                    $scope.Reviews = [];
+
+
+                })();
+
+
+                $scope.NotifiCount = 0;
+                setInterval(function () {
+                    $scope.TokenInfo = AuthenticationService.getTokenInfo();
+                    if ($scope.TokenInfo != null) {
+                        MainService.getNotiCaount($scope.TokenInfo.Id).then(function (res) {
+                            $scope.NotifiCount = res.data;
+                        })
+                    }
+                }, 10000);
+
+                $scope.Notifications = [];
+                $scope.GetNotifications = function () {
+                    $scope.TokenInfo = AuthenticationService.getTokenInfo();
+                    MainService.GetUserNotifications($scope.TokenInfo.Id).then(function (res) {
+                        $scope.Notifications = res.data;
+                    })
+                    MainService.resetUserNotifications($scope.TokenInfo.Id).then(function (res) {
+                        $scope.isnotificlear = res.data;
+                    })
+                }
+
+                /////////////// login  ////////////// 
+
+                $scope.ErrorText = "",
+
+                $scope.User = {
+                    UserName: "",
+                    Password: ""
+                }
+
+                $scope.Login = function () {
+                    $scope.loginError = false;
+
+
+                    $scope.IsLoggedIn = false;
+                    if ($scope.User.UserName == "") {
+                        $scope.ErrorText = "Username / Password Error";
+                        
+                    }
+                    else if ($scope.User.Password == "" || $scope.User.Password == undefined) {
+                        $scope.ErrorText = "Username / Password Error";
+                        
+                    }
+
+                    else {
+                        $scope.load = true;
+                        LoginService.Login($scope.User)
+                            .then(function (response) {
+                                $scope.load = false;
+                                if (response.data) {
+                                    if (response.data.Role == "Admin" || response.data.Role == "Employee") {
+                                        $scope.TokenInfo = response.data;
+                                        $scope.logInfo = response.data
+                                        $scope.UserName = $scope.TokenInfo.UserName;
+                                        AuthenticationService.setTokenInfo($scope.TokenInfo);
+                                        $scope.loginError = false;
+                                        $scope.User = {};
+                                        $scope.IsLoggedIn = true;
+                                        $scope.load = false;
+                                        $state.go("dashboardHome");
+                                    } else if(response.data.Role == "Shop"){
+                                        $scope.TokenInfo = response.data;
+                                        $scope.logInfo = response.data
+                                        $scope.UserName = $scope.TokenInfo.UserName;
+                                        AuthenticationService.setTokenInfo($scope.TokenInfo);
+                                        $scope.loginError = false;
+                                        $scope.User = {};
+                                        $scope.IsLoggedIn = true;
+                                        $scope.load = false;
+                                        $state.go("ShopSales");
+                                    } else if (response.data.Role == "Customer"){
+                                        $scope.TokenInfo = response.data;
+                                        $scope.logInfo = response.data
+                                        $scope.UserName = $scope.TokenInfo.UserName;
+                                        AuthenticationService.setTokenInfo($scope.TokenInfo);
+                                        $scope.loginError = false;
+                                        $scope.User = {};
+                                        $scope.IsLoggedIn = true;
+                                        $scope.load = false;
+                                        $scope.InitLogin();
+                                        $state.go("home");
+                                    } else {
+                                        $scope.IsLoggedIn = false;
+                                        $scope.loginError = true;
+                                        $scope.ErrorText = "Username / Password Error";
+                                    }                                  
+                                }
+                                else {
+                                    $scope.IsLoggedIn = false;
+                                    $scope.loginError = true;
+                                    $scope.ErrorText = "Username / Password Error";
+                                }
+                            }, function (err) {
+                                $scope.ErrorText = "Username / Password Error";
+                                $scope.load = false;
+                                $scope.loginError = true;
+                            });
+                    }
+
+
+                };
+
+                $scope.logOut = function () {
+                    $scope.working = true;
+                    LoginService.logOut()
+                        .then(function (response) {
+                            $scope.working = false;
+                            if (response) {
+                                AuthenticationService.removeTokenInfo();
+                                $scope.IsLoggedIn = false;
+                                var IsLoggedIn;
+                                $state.go("login");
+                            }
+                        }, function (err) {
+                            $scope.working = false;
+                        })
+                };
+
+                $scope.UserUpdate = {
+                    Password: "",
+                    CPassword: "",
+                    Id: "",
+                }
+
+                $scope.changePassword = function () {
+
+                    $scope.UserUpdate.Id = $scope.TokenInfo.UserId;
+
+                    if ($scope.UserUpdate.Password == "") {
+                        toastr.error("Enter Password");
+                    }
+                    else if ($scope.UserUpdate.CPassword == "") {
+                        toastr.error("Confirm Password");
+                    }
+                    else if ($scope.UserUpdate.Password != $scope.UserUpdate.CPassword) {
+                        toastr.error("Password Mismatch");
+                        $scope.UserUpdate = {};
+                    }
+                    else {
+                        LoginService.ChangePassword($scope.UserUpdate).then(function (response) {
+                            if (response.data) {
+                                toastr.success("Successfully Changed Password");
+                                $scope.UserUpdate = {
+                                    Password: "",
+                                    CPassword: ""
+                                }
+                            }
+                        }, function (err) {
+                            toastr.error("Network Error");
+                        });
+                    }
+                };
+
+       
+
+            }]);

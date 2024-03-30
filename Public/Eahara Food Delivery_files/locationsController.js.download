@@ -1,0 +1,32 @@
+﻿angular.module("eahara")
+    .controller("locationsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.init = function () {
+
+
+                $scope.search = {
+                    Name: "",
+                }
+
+
+                $scope.Locations = [];
+                MainService.LocationInDropdown().then(function (response) {
+                    $scope.Locations = response.data;                   
+                }, function (err) {
+                    $scope.SLoad = false;
+                    });
+
+
+            }
+            $scope.init();
+
+            $scope.Clear = function () {
+
+                $scope.search = {
+                    Name: "",
+                }
+            }
+
+
+        }])

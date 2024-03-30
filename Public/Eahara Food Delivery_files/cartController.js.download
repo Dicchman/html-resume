@@ -1,0 +1,171 @@
+﻿angular.module("eahara")
+    .controller("cartController", ["$scope", "$state", "$stateParams", "MainService", 'CookiesServices', 'AuthenticationService',
+    function ($scope, $state, $stateParams, MainService, CookiesServices, AuthenticationService) {
+
+       
+
+        $scope.Init = function () {
+
+            $scope.now = new Date();
+            $scope.Time = $scope.now.getHours();
+            $scope.Minutes = $scope.now.getMinutes();
+            $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+            $scope.CurrentTime = parseFloat($scope.CurrentTime);   
+
+            $scope.Products = [];
+
+            var cookieKey = 'eaharacart';                                        //cookie key
+            $scope.ordersToCheckout = [];
+            CookiesServices.init(cookieKey);                               //initializing cookie  
+            var cartCookies = CookiesServices.getCookie(cookieKey);        //store cookie in cartCookies 
+            if (cartCookies.length > 0) {
+                $scope.ordersToCheckout = cartCookies;                     //store cookies into our orders to checkout 
+            }
+
+            $scope.Total = 0;
+            $scope.TotalDeliveryCharge = 0;
+            $scope.SubTotal = 0;
+            $scope.Validating = 0;
+
+            if ($scope.ordersToCheckout.length > 0) {
+                MainService.GetShopInCart($scope.ordersToCheckout[0].ShopId).then(function (response) {
+                    if (response.data != null) {
+                        var Shop = response.data;
+                        if (Shop.StartTime > $scope.CurrentTime || Shop.EndTime < $scope.CurrentTime) {
+                            toastr.info("Shop Closed Cannot Process Now. Please Try Another Shop");
+                            var ordersToCheckout = [];
+                            CookiesServices.updateCookies(cookieKey, ordersToCheckout);
+                            $scope.updateCart();
+                            $state.go("home");
+                        }
+                    } else {
+                        toastr.info("Shop Not Available. Cannot Process Now. Please Try Another Shop");
+                        var ordersToCheckout = [];
+                        CookiesServices.updateCookies(cookieKey, ordersToCheckout);
+                        $scope.updateCart();
+                        $state.go("home");
+                    }
+                }, function () {
+                    toastr.error("Network Error");
+                })
+            }
+
+            $scope.InActiveArray = [];
+
+            angular.forEach($scope.ordersToCheckout, function (e) {
+
+                MainService.GetItemInCart(e.Id).then(function (response) {
+                    if (response.data != null) {
+                        var item = response.data;
+                        if (item.InActive == true) {
+                            toastr.info("Item " + e.Name + " Not Available");
+                       
+                            var index = $scope.ordersToCheckout.indexOf(e);
+                            $scope.ordersToCheckout.splice(index, 1);
+                            CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+                            $scope.updateCart();
+                           $scope.Init();
+
+                        } else {
+
+                            e.DiscountPrice = item.OfferPrice;
+                            e.Price = item.Price;
+
+                            //$scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                            //$scope.TotalDeliveryCharge = e.DelCharge;
+                            //$scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                            //$scope.Total = $scope.TotalDeliveryCharge + $scope.SubTotal;
+                            //$scope.SelectedShopId = e.ShopId;
+                        }
+                    } else {
+                        toastr.info("Item " + e.Name + " Not Available");
+                        
+                        var index = $scope.ordersToCheckout.indexOf(e);
+                        $scope.ordersToCheckout.splice(index, 1);
+                        CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+                        $scope.updateCart();
+                        $scope.Init();
+                    }
+                }, function () {
+                    toastr.error("Network Error");
+                })
+
+            });
+
+            $scope.Total = 0;
+            $scope.TotalDeliveryCharge = 0;
+            $scope.SubTotal = 0;
+
+            angular.forEach($scope.ordersToCheckout, function (e) {
+                $scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                $scope.TotalDeliveryCharge = e.DelCharge;
+                $scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                $scope.Total = $scope.TotalDeliveryCharge + $scope.SubTotal;
+            });
+
+            $scope.Validating = 1;
+        }
+
+        $scope.Init();
+
+
+        $scope.deleteOrder = function (i) {
+
+            var cookieKey = 'eaharacart';
+            angular.forEach($scope.ordersToCheckout, function (e) {
+                if (e.Id == i.Id) {
+                    var index = $scope.ordersToCheckout.indexOf(i);
+                    $scope.ordersToCheckout.splice(index, 1);
+                }
+            });
+
+            CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+
+            $scope.Total = 0;
+            $scope.TotalDeliveryCharge = 0;
+            $scope.SubTotal = 0;
+
+            angular.forEach($scope.ordersToCheckout, function (e) {
+                $scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                $scope.TotalDeliveryCharge = e.DelCharge;
+                $scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                $scope.Total = $scope.TotalDeliveryCharge + $scope.SubTotal;
+            });
+
+            $scope.updateCart();
+        };
+
+        $scope.changeNumber = function (data) {
+            if (data.Quantity <= 0) {
+                data.Quantity = 1;
+            }
+            CookiesServices.updateCookies('eaharacart', $scope.ordersToCheckout);
+            $scope.updateCart();
+            $scope.Init();
+        }
+
+        $scope.CheckOut = function () {
+            if ($scope.ordersToCheckout.length > 0) {
+                $state.go("CheckOut");
+            }
+            else {
+                $scope.errText = "No Items In The Cart";
+            }
+        }
+
+
+        $scope.ContinueShoping = function (data) {
+
+            if ($scope.ordersToCheckout.length > 0) {
+                $state.go('ShopDetails', {
+                    ShopId: $scope.ordersToCheckout[0].ShopId,
+                    Name: $scope.ordersToCheckout[0].Shop,
+                });
+            } else {
+                $state.go("home");
+            }
+        }
+
+
+    }]);
+

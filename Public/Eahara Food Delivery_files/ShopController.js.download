@@ -1,0 +1,155 @@
+﻿angular.module("eahara")
+    .controller("ShopController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.init = function () {
+
+                $scope.Shops = [];
+                $scope.Categories = [];
+                $scope.ShopsCategories = [];
+                $scope.ShopsLoad = true;
+
+                $scope.Filter = {
+                    Preference: false,
+                    Preference2: false,
+                    Keyword: "",                   
+                    Pagenation: 0,
+                    CategoryId: 0,
+                    ShopsCategories: [],
+                    ItemCategories: [],
+                    LocationId: $scope.LocInfo.LocationId,
+                }
+
+                MainService.ItemCategoryInDropdown().then(function (response) {
+                    if (response) {
+                        $scope.Categories = response.data;
+                    }
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+
+                MainService.ShopCategoryInDropdown().then(function (response) {
+                    if (response) {
+                        $scope.ShopsCategories = response.data;
+                        angular.forEach($scope.ShopsCategories, function (e) {
+                            if (e.Id == $stateParams.CategoryId) {
+                                e.IsChecked = true;
+                            }
+                        });
+                    }
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+
+                if ($stateParams.CategoryId != null) {
+                    $scope.Filter.CategoryId = $stateParams.CategoryId;
+                    MainService.ShopsByCatId($scope.Filter).then(function (res) {
+                        $scope.Shops = res.data;
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+                }
+
+                $scope.now = new Date();
+                $scope.Time = $scope.now.getHours();
+                $scope.Minutes = $scope.now.getMinutes();
+                $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                $scope.CurrentTime = parseFloat($scope.CurrentTime);   
+            }
+            $scope.init();
+
+            $scope.ApplyFilter = function () {
+                $scope.ShopsLoad = true;
+                MainService.ShopsInHome($scope.Filter).then(function (response) {
+                    if (response) {
+                        $scope.Shops = response.data;
+                        $scope.Filter.Keyword = "";
+                    }
+                    $scope.ShopsLoad = false;
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+            }
+
+            $scope.ApplyFilter2 = function () {
+
+                $scope.ShopsLoad = true;
+                $scope.Filter.ShopsCategories = [];
+                angular.forEach($scope.ShopsCategories, function (e) {
+                    if (e.IsChecked) {
+                        $scope.Filter.ShopsCategories.push(e.Id)
+                    }
+                });
+                MainService.ShopsInHome($scope.Filter).then(function (response) {
+                    if (response) {
+                        $scope.Shops = response.data;
+                        $scope.Filter.Keyword = "";
+                    }
+                    $scope.ShopsLoad = false;
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+            }
+
+            $scope.ApplyFilter3 = function () {
+                $scope.ShopsLoad = true;
+
+                $scope.Filter.ItemCategories = [];
+                angular.forEach($scope.Categories, function (e) {
+                    if (e.IsChecked) {
+                        $scope.Filter.ItemCategories.push(e.Id)
+                    }
+                });
+
+                MainService.ShopsInHome($scope.Filter).then(function (response) {
+                    if (response) {
+                        $scope.Shops = response.data;
+                        $scope.Filter.Keyword = "";
+                    }
+                    $scope.ShopsLoad = false;
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+            }
+
+            $scope.GoPrev = function () {
+                $scope.ShopsLoad = true;
+                $scope.Filter.Pagenation = $scope.Filter.Pagenation - 20;
+                MainService.ShopsInHome($scope.Filter).then(function (response) {
+                    if (response) {
+                        $scope.Shops = response.data;
+                        $scope.Filter.Keyword = "";
+                    }
+                    $scope.ShopsLoad = false;
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+
+            }
+
+            $scope.GoNext = function () {
+                $scope.ShopsLoad = true;
+                $scope.Filter.Pagenation = $scope.Filter.Pagenation + 20;
+                MainService.ShopsInHome($scope.Filter).then(function (response) {
+                    if (response) {
+                        $scope.Shops = response.data;
+                        $scope.Filter.Keyword = "";
+                    }
+                    $scope.ShopsLoad = false;
+                }, function () {
+                    $scope.ShopsLoad = false;
+                })
+
+            }
+
+
+            $scope.goToDetails = function (data) {
+                $state.go('ShopDetails', {
+                    ShopId: data.Id,
+                    Name: data.Name,
+                });
+            }
+
+
+        }])

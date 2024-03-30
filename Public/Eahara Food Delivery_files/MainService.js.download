@@ -1,0 +1,1024 @@
+﻿angular.module("eahara")
+    .service('MainService', ['$q', '$window', "$http", "app.config",
+        function ($q, $window, $http, config) {
+
+            ////////////////////// ********* Items *********/////////////
+
+            this.AddItems = function (data) {
+                return $http.post(config.basePath + "AddItems", data);
+            };
+
+            this.ItemsInView = function (data) {
+                return $http.post(config.basePath + "ItemsInView", data);
+            };
+            this.ShopItemsInView = function (data) {
+                return $http.post(config.basePath + "ShopItemsInView", data);
+            };
+
+            this.makeItemInactive = function (data) {
+                return $http.get(config.basePath + "makeItemInactive/" + data);
+            };
+
+            this.RemoveItemoffer = function (data) {
+                return $http.get(config.basePath + "RemoveItemoffer/" + data);
+            };
+
+            this.DeleteItem = function (id) {
+                return $http.get(config.basePath + "DeleteItem/" + id);
+            };
+
+            this.GetShopItemsByShopId = function (id) {
+                return $http.get(config.basePath + "GetShopItemsByShopId/" + id);
+            };
+
+
+            this.ItemsById = function (id) {
+                return $http.get(config.basePath + "ItemsById/" + id);
+            };
+
+            this.GetItemInCart = function (id) {
+                return $http.get(config.basePath + "GetItemInCart/" + id);
+            };
+
+            this.ItemsByCatId = function (id, locid) {
+                return $http.get(config.basePath + "ItemsByCatId/" + id + "/" + locid);
+            };
+
+            this.ItemDetailById = function (id) {
+                return $http.get(config.basePath + "ItemDetailById/" + id);
+            };
+
+            this.GetShopItemsHavingOffer = function (id) {
+                return $http.get(config.basePath + "GetShopItemsHavingOffer/" + id);
+            };
+
+            this.ItemsByOfferId = function (id) {
+                return $http.get(config.basePath + "ItemsByOfferId/" + id);
+            };
+
+            this.GetShopCatItems = function (id, catid) {
+                return $http.get(config.basePath + "GetShopCatItems/" + id + "/" + catid);
+            };
+
+            this.ApplyPromoOfferAdmin = function (id, value) {
+                return $http.get(config.basePath + "ApplyPromoOfferAdmin/" + id + "/" + value);
+            };
+
+            this.ApplyDelChargeAdmin = function (id, value) {
+                return $http.get(config.basePath + "ApplyDelChargeAdmin/" + id + "/" + value);
+            };
+
+            this.ItemsInDropdown = function () {
+                return $http.get(config.basePath + "ItemsInDropdown");
+            };
+
+
+
+
+
+
+            this.AddMEDCategory = function (data) {
+                return $http.post(config.basePath + "AddMEDCategory", data);
+            };
+            this.MEDCategoriesInView = function (data) {
+                return $http.post(config.basePath + "MEDCategoriesInView", data);
+            };
+
+            this.DeleteMEDCategoryById = function (id) {
+                return $http.get(config.basePath + "DeleteMEDCategoryById/" + id);
+            };
+
+
+            this.AddMEDStatus = function (data) {
+                return $http.post(config.basePath + "AddMEDStatus", data);
+            };
+            this.MEDStatusInView = function (data) {
+                return $http.post(config.basePath + "MEDStatusInView", data);
+            };
+
+            this.DeleteMEDStatusId = function (id) {
+                return $http.get(config.basePath + "DeleteMEDStatusId/" + id);
+            };
+
+
+            this.AddMEDOffers = function (data) {
+                return $http.post(config.basePath + "AddMEDOffers", data);
+            };
+
+            this.MEDOffersInView = function (data) {
+                return $http.post(config.basePath + "MEDOffersInView", data);
+            };
+
+            this.DeleteMEDOffers = function (id) {
+                return $http.get(config.basePath + "DeleteMEDOffers/" + id);
+            };
+
+
+
+
+            ////////////////////// *********  Shops  ********* /////////////
+
+            this.AddShops = function (data) {
+                return $http.post(config.basePath + "AddShops", data);
+            };
+
+            this.ShopsInHome = function (data) {
+                return $http.post(config.basePath + "ShopsWithFilter", data);
+            };
+
+            this.ShopsById = function (id) {
+                return $http.get(config.basePath + "ShopsById/" + id);
+            };
+
+            this.ShopDetailById = function (id) {
+                return $http.get(config.basePath + "ShopDetailById/" + id);
+            };
+
+            this.ShopsByCatId = function (data) {
+                return $http.post(config.basePath + "ShopsByCatId", data);
+            };
+
+            this.ShopInDropdown = function () {
+                return $http.get(config.basePath + "ShopInDropdown");
+            };
+
+            this.ShopsInNoUserDropdown = function () {
+                return $http.get(config.basePath + "ShopsInNoUserDropdown");
+            };
+
+            this.ShopsInView = function (data) {
+                return $http.post(config.basePath + "ShopsInView", data);
+            };
+
+            this.GetShopSalesInView = function (data) {
+                return $http.post(config.basePath + "GetShopSalesInView", data);
+            };
+
+            this.DeleteShops = function (id) {
+                return $http.get(config.basePath + "DeleteShops/" + id);
+            };
+
+            this.ShopsByKeyword = function (id, locid) {
+                return $http.get(config.basePath + "ShopsByKeyword/" + id + "/" + locid);
+            };
+
+            this.GetSimilarShops = function (id, locid) {
+                return $http.get(config.basePath + "GetSimilarShops/" + id + "/" + locid);
+            };
+
+            this.getShopItemsForFirstLoad = function (id) {
+                return $http.get(config.basePath + "getShopItemsForFirstLoad/" + id);
+            };
+
+            this.MakePaidStatusBooking = function (id) {
+                return $http.get(config.basePath + "MakePaidStatusBooking/" + id);
+            };
+
+            //////////////////////  ********* Notifications ********* /////////////
+
+            this.GetUserNotifications = function (id) {
+                return $http.get(config.basePath + "GetUserNotifications/" + id);
+            };
+
+            this.getNotiCaount = function (id) {
+                return $http.get(config.basePath + "getNotiCaount/" + id);
+            };
+            
+            this.resetUserNotifications = function (id) {
+                return $http.get(config.basePath + "resetUserNotifications/" + id);
+            };
+
+            //////////////////////  ********* Items category ********* /////////////
+
+            this.AddItemCategory = function (data) {
+                return $http.post(config.basePath + "AddItemCategory", data);
+            };
+
+            this.AddShopInfo = function (data) {
+                return $http.post(config.basePath + "AddShopInfo", data);
+            };
+            this.DeleteShopInfo = function (id) {
+                return $http.get(config.basePath + "DeleteShopInfo/" + id);
+            };
+
+            this.getShopItemCats = function (id) {
+                return $http.get(config.basePath + "getShopItemCats/" + id);
+            };
+
+            this.GetShopInfo = function (id) {
+                return $http.get(config.basePath + "GetShopInfo/" + id);
+            };
+
+            this.ShopsInDropdown = function () {
+                return $http.get(config.basePath + "ShopsInDropdown");
+            };
+
+
+            this.AddShopMenu = function (data) {
+                return $http.post(config.basePath + "AddShopMenu", data);
+            };
+            this.DeleteShopMenu = function (id) {
+                return $http.get(config.basePath + "DeleteShopMenu/" + id);
+            };
+
+            this.GetShopMenu = function (id) {
+                return $http.get(config.basePath + "GetShopMenu/" + id);
+            };
+
+
+            this.AddShopImages = function (data) {
+                return $http.post(config.basePath + "AddShopImages", data);
+            };
+            this.DeleteShopImages = function (id) {
+                return $http.get(config.basePath + "DeleteShopImages/" + id);
+            };
+            this.GetShopImage = function (id) {
+                return $http.get(config.basePath + "GetShopImage/" + id);
+            };
+
+            this.ItemCategorysInView = function (data) {
+                return $http.post(config.basePath + "ItemCategorysInView", data);
+            };
+
+            this.DeleteItemCategoryById = function (id) {
+                return $http.get(config.basePath + "DeleteItemCategoryById/" + id);
+            };
+
+            this.ItemCategoryInDropdown = function () {
+                return $http.get(config.basePath + "ItemCategoryInDropdown");
+            };
+
+            this.ItemsByKeyword = function (id, locid) {
+                return $http.get(config.basePath + "ItemsByKeyword/" + id + "/" + locid);
+            };
+
+            ///////// ******** shop category ********* /////////
+
+            this.AddShopCategory = function (data) {
+                return $http.post(config.basePath + "AddShopCategory", data);
+            };
+
+            this.ShopCategorysInView = function (data) {
+                return $http.post(config.basePath + "ShopCategorysInView", data);
+            };
+
+            this.ShopCategoryInDropdown = function () {
+                return $http.get(config.basePath + "ShopCategoryInDropdown");
+            };
+
+            this.DeleteShopCategoryById = function (id) {
+                return $http.get(config.basePath + "DeleteShopCategoryById/" + id);
+            };
+
+            ///////// ******** Item Image ********* /////////
+
+            this.AddItemImages = function (data) {
+                return $http.post(config.basePath + "AddItemImages", data);
+            };
+            this.GetItemImage = function (id) {
+                return $http.get(config.basePath + "GetItemImage/" + id);
+            };
+
+            this.DeleteItemImages = function (id) {
+                return $http.get(config.basePath + "DeleteItemImages/" + id);
+            };
+
+
+            //////// ******** Offers ********* /////////
+
+            this.AddOffers = function (data) {
+                return $http.post(config.basePath + "AddOffers", data);
+            };
+
+            this.OffersInView = function (data) {
+                return $http.post(config.basePath + "OffersInView", data);
+            };
+            this.ShopOffersInView = function (data) {
+                return $http.post(config.basePath + "ShopOffersInView", data);
+            };
+            this.AddOrderBlackList = function (data) {
+                return $http.post(config.basePath + "AddOrderBlackList", data);
+            };
+
+            this.DeleteOffers = function (id) {
+                return $http.get(config.basePath + "DeleteOffers/" + id);
+            };
+
+            this.GetBlockListedItemsByCustomer = function (id) {
+                return $http.get(config.basePath + "GetBlockListedItemsByCustomer/" + id);
+            };
+
+            this.GetAllOffers = function () {
+                return $http.get(config.basePath + "GetOffers");
+            };
+
+            this.GetOffers = function (id) {
+                return $http.get(config.basePath + "GetOffers/" + id);
+            };
+
+            this.GetShopOffers = function (id) {
+                return $http.get(config.basePath + "GetShopOffers/" + id);
+            };
+
+            this.GetOffersInHome = function (id) {
+                return $http.get(config.basePath + "GetOffersInHome/" + id);
+            };
+
+            /////////////////////****Feedbaack****////////
+
+            this.FeedbackInView = function (data) {
+                return $http.post(config.basePath + "FeedbackInView", data);
+            };
+
+            this.DeleteFeedback = function (id) {
+                return $http.get(config.basePath + "DeleteFeedback/" + id);
+            };
+
+            this.AddFeedback = function (data) {
+                return $http.post(config.basePath + "AddFeedback", data);
+            };
+            this.GetAllFeedback = function (id) {
+                return $http.get(config.basePath + "GetAllFeedback/" + id);
+            };
+            /////////////////////****CompanyProfile****////////
+
+            this.SaveCompanyProfile = function (data) {
+                return $http.post(config.basePath + "SaveCompanyProfile", data);
+            };
+            this.GetCompanyProfile = function () {
+                return $http.get(config.basePath + "GetCompanyProfile");
+            };
+
+            /////////////////////****Enquiry****////////
+            this.AddEnquiry = function (data) {
+                return $http.post(config.basePath + "AddEnquiry", data);
+            };
+
+
+            /////////////////////****Enquiry****////////
+
+            this.EnquiriesInView = function (data) {
+                return $http.post(config.basePath + "EnquiriesInView", data);
+            };
+
+            this.DeleteEnquiry = function (id) {
+                return $http.get(config.basePath + "DeleteEnquiry/" + id);
+            };
+
+
+            /////////////////////****Booking****////////
+
+            this.AddBooking = function (data) {
+                return $http.post(config.basePath + "AddBooking", data);
+            };
+
+            this.BookingsInView = function (data) {
+                return $http.post(config.basePath + "BookingsInView", data);
+            };
+            this.BookingReportsInView = function (data) {
+                return $http.post(config.basePath + "BookingReportsInView", data);
+            };          
+            
+
+            this.PrintBookingReportList = function (data) {
+                return $http.post(config.basePath + "PrintBookingReportList", data);
+            };
+
+            this.PrintClientReportList = function (data) {
+                return $http.post(config.basePath + "PrintClientReportList", data);
+            };
+
+            this.ShopsInMultiSelect = function (data) {
+                return $http.post(config.basePath + "ShopsInMultiSelect", data);
+            };
+
+            this.PrintDyncReport = function (data) {
+                return $http.post(config.basePath + "PrintDyncReport", data);
+            };
+
+            this.PrintShopDyncReport = function (data) {
+                return $http.post(config.basePath + "PrintShopDyncReport", data);
+            };
+
+            this.DeleteBooking = function (id) {
+                return $http.get(config.basePath + "DeleteBooking/" + id);
+            };
+            this.BookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "BookingsInDashboard/" + id);
+            };
+
+            this.BookedBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "BookedBookingsInDashboard/" + id);
+            };
+
+            this.ApprovedBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "ApprovedBookingsInDashboard/" + id);
+            };
+
+            this.ReadyBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "ReadyBookingsInDashboard/" + id);
+            };
+
+            this.PickedBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "PickedBookingsInDashboard/" + id);
+            };
+
+            this.BookedMEDBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "BookedMEDBookingsInDashboard/" + id);
+            };
+
+            this.ApprovedMEDBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "ApprovedMEDBookingsInDashboard/" + id);
+            };
+
+            this.ReadyMEDBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "ReadyMEDBookingsInDashboard/" + id);
+            };
+
+            this.PickedMEDBookingsInDashboard = function (id) {
+                return $http.get(config.basePath + "PickedMEDBookingsInDashboard/" + id);
+            };
+
+            this.AdminWebDashCounts = function () {
+                return $http.get(config.basePath + "AdminWebDashCounts");
+            };
+
+            this.MEDAdminWebDashCounts = function () {
+                return $http.get(config.basePath + "MEDAdminWebDashCounts");
+            };
+
+            this.BookingDetailsById = function (id) {
+                return $http.get(config.basePath + "BookingDetailsById/" + id);
+            };
+
+
+            /////////////////////****Med print****////////
+
+            this.PrintMedBookingReportList = function (data) {
+                return $http.post(config.basePath + "PrintMedBookingReportList", data);
+            };
+
+
+
+
+            /////////////////////****Subscription****////////
+
+
+            this.AdSubscription = function (data) {
+                return $http.post(config.basePath + "AdSubscription", data);
+            };
+
+            this.SubscriptionInView = function (data) {
+                return $http.post(config.basePath + "SubscriptionInView", data);
+            };
+
+            this.DeleteSubscription = function (id) {
+                return $http.get(config.basePath + "DeleteSubscription/" + id);
+            };
+
+            //////// ******** Partners ********* /////////
+
+            this.AddPartner = function (data) {
+                return $http.post(config.basePath + "AddPartner", data);
+            };
+
+            this.PartnersInView = function (data) {
+                return $http.post(config.basePath + "PartnersInView", data);
+            };
+
+            this.DeletePartner = function (id) {
+                return $http.get(config.basePath + "DeletePartner/" + id);
+            };
+            this.PartnersInHome = function (id) {
+                return $http.get(config.basePath + "PartnersInHome/" + id);
+            };
+
+            //////// ******** Employees ********* /////////
+
+            this.AddEmployee = function (data) {
+                return $http.post(config.basePath + "AddEmployee", data);
+            };
+
+            this.EmployeesInView = function (data) {
+                return $http.post(config.basePath + "EmployeesInView", data);
+            };
+
+            this.DeleteEmployeeById = function (id) {
+                return $http.get(config.basePath + "DeleteEmployeeById/" + id);
+            };
+
+            this.EmployeesInDropdown = function () {
+                return $http.get(config.basePath + "EmployeesInDropdown");
+            };
+            this.EmployeesInNoUserDropdown = function () {
+                return $http.get(config.basePath + "EmployeesInNoUserDropdown");
+            };
+
+            this.DriversInDropdown = function () {
+                return $http.get(config.basePath + "DriversInDropdown");
+            };
+
+
+            //////// ******** FAQ ********* /////////
+
+            this.AddFAQ = function (data) {
+                return $http.post(config.basePath + "AddFAQ", data);
+            };
+
+            this.FAQInView = function (data) {
+                return $http.post(config.basePath + "FAQInView", data);
+            };
+
+            this.DeleteFAQ = function (id) {
+                return $http.get(config.basePath + "DeleteFAQ/" + id);
+            };
+            this.FAQInHome = function () {
+                return $http.get(config.basePath + "FAQInHome");
+            };
+
+            //////// ******** Review ********* /////////
+
+            this.AddReview = function (data) {
+                return $http.post(config.basePath + "AddReview", data);
+            };
+
+            this.ReviewsInView = function (data) {
+                return $http.post(config.basePath + "ReviewsInView", data);
+            };
+
+            this.DeleteReviews = function (id) {
+                return $http.get(config.basePath + "DeleteReviews/" + id);
+            };
+
+            this.getShopReviews = function (id) {
+                return $http.get(config.basePath + "getShopReviews/" + id);
+            };
+
+            this.ReviewsInDashboard = function (id) {
+                return $http.get(config.basePath + "ReviewsInDashboard/" + id);
+            };
+
+
+            //////// ******** Tags ********* /////////
+
+            this.AddTag = function (data) {
+                return $http.post(config.basePath + "AddTag", data);
+            };
+            this.DeleteTag = function (id) {
+                return $http.get(config.basePath + "DeleteTag/" + id);
+            };
+            this.FAQInHome = function () {
+                return $http.get(config.basePath + "FAQInHome");
+            };
+            this.GetShopTags = function (id) {
+                return $http.get(config.basePath + "GetShopTags/" + id);
+            };
+            this.GetItemTags = function (id) {
+                return $http.get(config.basePath + "GetItemTags/" + id);
+            };
+
+            //////// ******** Location ********* /////////
+
+            this.AddLocation = function (data) {
+                return $http.post(config.basePath + "AddLocation", data);
+            };
+
+            this.LocationsInView = function (data) {
+                return $http.post(config.basePath + "LocationsInView", data);
+            };
+
+            this.DeleteLocationById = function (id) {
+                return $http.get(config.basePath + "DeleteLocationById/" + id);
+            };
+
+            this.checkLocationActive = function (id) {
+                return $http.get(config.basePath + "checkLocationActive/" + id);
+            };
+
+            this.LocationInDropdown = function () {
+                return $http.get(config.basePath + "LocationInDropdown");
+            };
+            //////// ******** Status ********* /////////
+
+            this.AddStatus = function (data) {
+                return $http.post(config.basePath + "AddStatus", data);
+            };
+
+            this.StatusInView = function (data) {
+                return $http.post(config.basePath + "StatusInView", data);
+            };
+
+            this.DeleteStatusId = function (id) {
+                return $http.get(config.basePath + "DeleteStatusId/" + id);
+            };
+
+            this.StatusInDropdown = function () {
+                return $http.get(config.basePath + "StatusInDropdown");
+            };
+
+            ///// register ///////
+
+            this.RegisterCustomer = function (data) {
+                return $http.post(config.basePath + "RegisterCustomer", data);
+            };
+            this.SendRegisterOtp = function (id) {
+                return $http.get(config.basePath + "SendRegisterOtp/" + id);
+            };
+
+            this.SendTroubleOtp = function (id) {
+                return $http.get(config.basePath + "SendTroubleOtp/" + id);
+            };
+
+            this.CancelBooking = function (data) {
+                return $http.post(config.basePath + "CancelBooking", data);
+            };
+
+            this.AddMEDBooking = function (data) {
+                return $http.post(config.basePath + "AddMEDBooking", data);
+            };
+
+            this.UpdateBookingStatus = function (data) {
+                return $http.post(config.basePath + "UpdateBookingStatus" , data);
+            };
+
+            this.AssignDriver = function (id, driverid) {
+                return $http.get(config.basePath + "AssignDriver/" + id + "/" + driverid);
+            };
+
+            this.AddCustomerWallet = function (id, wallet) {
+                return $http.get(config.basePath + "AddCustomerWallet/" + id + "/" + wallet);
+            };
+
+            this.ResetTroublePswd = function (data) {
+                return $http.post(config.basePath + "ResetTroublePswd", data);
+            };
+
+            this.NearShopsInHome = function (data) {
+                return $http.post(config.basePath + "NearShopsInHome", data);
+            };
+
+            this.updateCustomer = function (data) {
+                return $http.post(config.basePath + "updateCustomer", data);
+            };
+
+            this.ApplyRemarksAdmin = function (data) {
+                return $http.post(config.basePath + "ApplyRemarksAdmin", data);
+            };
+
+            this.AddAddress = function (data) {
+                return $http.post(config.basePath + "AddAddress", data);
+            };
+
+            this.NearShopsInHome2 = function (data) {
+                return $http.post(config.basePath + "NearShopsInHome2", data);
+            };
+
+            this.TrackOrder = function (num) {
+                return $http.get(config.basePath + "TrackOrder/" + num);
+            };
+
+            this.AddressbyCusId = function (id) {
+                return $http.get(config.basePath + "AddressbyCusId/" + id);
+            };
+
+            this.CustomerById = function (id) {
+                return $http.get(config.basePath + "CustomerById/" + id);
+            };
+
+            this.PrintOrder = function (id) {
+                return $http.get(config.basePath + "PrintOrder/" + id);
+            };
+
+            this.GetShopInCart = function (id) {
+                return $http.get(config.basePath + "GetShopInCart/" + id);
+            };
+
+
+            ///////////******Change Password******///////////
+
+            this.ChangePassword = function (data) {
+                return $http.post(config.basePath + "ChangePassword", data);
+            };
+
+            this.GetCompanyProfile = function () {
+                return $http.get(config.basePath + "GetCompanyProfile");
+            };
+            
+            //////// ******** PromoOffers ********* /////////
+
+            this.AddPromoOffers = function (data) {
+                return $http.post(config.basePath + "AddPromoOffers", data);
+            };
+
+            this.PromoOffersInView = function (data) {
+                return $http.post(config.basePath + "PromoOffersInView", data);
+            };
+
+            this.DeletePromoOffers = function (id) {
+                return $http.get(config.basePath + "DeletePromoOffers/" + id);
+            };
+
+            this.PromoOffersByCusId = function (id) {
+                return $http.get(config.basePath + "PromoOffersByCusId/" + id);
+            };
+
+            this.CheckPromoOffersByCusId = function (id, cusid) {
+                return $http.get(config.basePath + "CheckPromoOffersByCusId/" + id + "/" + cusid);
+            };
+
+            this.GetPromoOffers = function () {
+                return $http.get(config.basePath + "GetPromoOffers");
+            };
+
+            this.GetPromoOffersInHome = function () {
+                return $http.get(config.basePath + "GetPromoOffersInHome");
+            };
+
+            //////// ******** Users ********* /////////
+
+            this.AddUsers = function (data) {
+                return $http.post(config.basePath + "AddUsers", data);
+            };
+
+            this.UsersInView = function (data) {
+                return $http.post(config.basePath + "UsersInView", data);
+            };
+
+            this.DeleteUsers = function (id) {
+                return $http.get(config.basePath + "DeleteUsers/" + id);
+            };
+
+            //////// ******** Customers ********* /////////
+
+
+            this.AddCustomer = function (data) {
+                return $http.post(config.basePath + "AddCustomer", data);
+            };
+
+            this.CustomersInView = function (data) {
+                return $http.post(config.basePath + "CustomersInView", data);
+            };
+            this.CustomerReportsInView = function (data) {
+                return $http.post(config.basePath + "CustomerReportsInView", data);
+            };
+
+            this.DeleteCustomers = function (id) {
+                return $http.get(config.basePath + "DeleteCustomers/" + id);
+            };
+
+            //////// ******** MyOrder ********* /////////
+
+            this.CustomerBookingsInView = function (data) {
+                return $http.post(config.basePath + "CustomerBookingsInView", data);
+            };
+
+            //////// ******** Reports ********* /////////
+
+            this.AddReport = function (data) {
+                return $http.post(config.basePath + "AddReport", data);
+            };
+
+            this.ReportsInView = function (data) {
+                return $http.post(config.basePath + "ReportsInView", data);
+            };
+
+            this.DeleteReportId = function (id) {
+                return $http.get(config.basePath + "DeleteReportId/" + id);
+            };
+
+            this.ReportsInDropdown = function () {
+                return $http.get(config.basePath + "ReportsInDropdown");
+            };
+
+
+            //////////////////////  ********* Med Sub category ********* /////////////
+
+            this.AddMEDSubCategory = function (data) {
+                return $http.post(config.basePath + "AddMEDSubCategory", data);
+            };
+           
+            this.DeleteMEDSubCategoryById = function (id) {
+                return $http.get(config.basePath + "DeleteMEDSubCategoryById/" + id);
+            };
+
+            this.MEDSubCategoriesInView = function (data) {
+                return $http.post(config.basePath + "MEDSubCategoriesInView", data);
+            };
+
+            this.MEDCategoryInDropdown = function () {
+                return $http.get(config.basePath + "MEDCategoryInDropdown");
+            };
+            this.MEDSubCategoryInDropdown = function () {
+                return $http.get(config.basePath + "MEDSubCategoryInDropdown");
+            };
+            
+            this.GetSubCatByCatId = function (id) {
+                return $http.get(config.basePath + "GetSubCatByCatId/" + id);
+            };
+
+            //////////////////////  ********* MedItem ********* /////////////
+
+            this.AddMEDItems = function (data) {
+                return $http.post(config.basePath + "AddMEDItems", data);
+            };
+
+            this.DeleteMEDItemById = function (id) {
+                return $http.get(config.basePath + "DeleteMEDItemById/" + id);
+            };
+            this.MEDItemsById = function (id) {
+                return $http.get(config.basePath + "MEDItemsById/" + id);
+            };
+            
+            this.MEDItemsInView = function (data) {
+                return $http.post(config.basePath + "MEDItemsInView", data);
+            };
+            this.MEDOffersInDropdown = function () {
+                return $http.get(config.basePath + "MEDOffersInDropdown");
+            };
+            this.MEDItemsInDropdown = function () {
+                return $http.get(config.basePath + "MEDItemsInDropdown");
+            };
+            this.MEDStatusInDropdown = function () {
+                return $http.get(config.basePath + "MEDStatusInDropdown");
+            };
+
+            /////////////////////****MEDBooking****////////            
+
+            this.MEDBookingsInView = function (data) {
+                return $http.post(config.basePath + "MEDBookingsInView", data);
+            };
+            this.MEDBookingReportsInView = function (data) {
+                return $http.post(config.basePath + "MEDBookingReportsInView", data);
+            };
+            this.MEDDeleteBooking = function (id) {
+                return $http.get(config.basePath + "MEDDeleteBooking/" + id);
+            };
+            this.MEDBookingDetailsById = function (id) {
+                return $http.get(config.basePath + "MEDBookingDetailsById/" + id);
+            };
+            this.MEDUploadsInView = function (data) {
+                return $http.post(config.basePath + "MEDUploadsInView", data);
+            };
+
+            this.UpdateMEDBookingStatus = function (data) {
+                return $http.post(config.basePath + "UpdateMEDBookingStatus", data);
+            };
+            this.ApplyMEDRemarksAdmin = function (data) {
+                return $http.post(config.basePath + "ApplyMEDRemarksAdmin", data);
+            };
+            
+            this.MakePaidMEDStatusBooking = function (id) {
+                return $http.get(config.basePath + "MakePaidMEDStatusBooking/" + id);
+            };
+            this.ApplyDelMEDChargeAdmin = function (id, value) {
+                return $http.get(config.basePath + "ApplyDelMEDChargeAdmin/" + id + "/" + value);
+            };
+            this.ApplyMEDPromoOfferAdmin = function (id, value) {
+                return $http.get(config.basePath + "ApplyMEDPromoOfferAdmin/" + id + "/" + value);
+            };
+            this.PrintMEDOrder = function (id) {
+                return $http.get(config.basePath + "PrintMEDOrder/" + id);
+            };
+
+
+            this.AssignMEDDriver = function (id, driverid) {
+                return $http.get(config.basePath + "AssignMEDDriver/" + id + "/" + driverid);
+            };
+            //////// ******** Brands ********* /////////
+
+            this.AddMEDBrand = function (data) {
+                return $http.post(config.basePath + "AddMEDBrand", data);
+            };
+
+            this.MEDBrandsInView = function (data) {
+                return $http.post(config.basePath + "MEDBrandsInView", data);
+            };
+
+            this.DeleteMEDBrandById = function (id) {
+                return $http.get(config.basePath + "DeleteMEDBrandById/" + id);
+            };
+
+            this.MEDBrandInDropdown = function () {
+                return $http.get(config.basePath + "MEDBrandInDropdown");
+            };
+            
+            //////// ******** MED Shops ********* /////////
+
+            this.AddMEDShops = function (data) {
+                return $http.post(config.basePath + "AddMEDShops", data);
+            };
+
+            this.MEDShopsInView = function (data) {
+                return $http.post(config.basePath + "MEDShopsInView", data);
+            };
+
+            this.DeleteMEDShops = function (id) {
+                return $http.get(config.basePath + "DeleteMEDShops/" + id);
+            };
+
+            this.MEDShopDetailById = function (id) {
+                return $http.get(config.basePath + "MEDShopDetailById/" + id);
+            };
+
+            this.MEDShopsInDropdown = function () {
+                return $http.get(config.basePath + "MEDShopsInDropdown");
+            };
+            this.MEDShopsInNoUserDropdown = function () {
+                return $http.get(config.basePath + "MEDShopsInNoUserDropdown");
+            };
+
+
+            //////// ******** Pament Mode ********* /////////
+
+            this.AddPaymentMode = function (data) {
+                return $http.post(config.basePath + "AddPaymentMode", data);
+            };
+
+            this.PaymentModeInView = function (data) {
+                return $http.post(config.basePath + "PaymentModeInView", data);
+            };
+
+            this.DeletePaymentModeId = function (id) {
+                return $http.get(config.basePath + "DeletePaymentModeId/" + id);
+            };
+
+            this.PaymentModeInDropdown = function () {
+                return $http.get(config.basePath + "PaymentModeInDropdown");
+            };
+
+            //////// ******** Expense ********* /////////
+
+            this.AddExpense = function (data) {
+                return $http.post(config.basePath + "AddExpense", data);
+            };
+
+            this.ExpenseInView = function (data) {
+                return $http.post(config.basePath + "ExpenseInView", data);
+            };
+
+            this.DeleteExpenseId = function (id) {
+                return $http.get(config.basePath + "DeleteExpenseId/" + id);
+            };
+
+            this.ExpenseInDropdown = function () {
+                return $http.get(config.basePath + "ExpenseInDropdown");
+            };
+
+            //////// ******** Company Expense ********* /////////
+
+            this.AddCompanyExpense = function (data) {
+                return $http.post(config.basePath + "AddCompanyExpense", data);
+            };
+
+            this.CompanyexpenseInView = function (data) {
+                return $http.post(config.basePath + "CompanyexpenseInView", data);
+            };
+
+            this.DeleteCompanyExpense = function (id) {
+                return $http.get(config.basePath + "DeleteCompanyExpense/" + id);
+            };
+
+            this.CompanyExpenseById = function (id) {
+                return $http.get(config.basePath + "CompanyExpenseById/" + id);
+            };
+
+            this.PrintExpense = function (id) {
+                return $http.get(config.basePath + "PrintExpense/" + id);
+            };
+
+            this.PrintExpenseList = function (data) {
+                return $http.post(config.basePath + "PrintExpenseList", data);
+            };
+
+
+
+
+
+            ////////////////////////////// MMethod ///////////////////
+
+            this.AddMMethod = function (data) {
+                return $http.post(config.basePath + "AddMMethod", data);
+            };
+
+            this.MMethodsInView = function (data) {
+                return $http.post(config.basePath + "MMethodsInView", data);
+            };
+
+            this.DeleteMMethodById = function (id) {
+                return $http.get(config.basePath + "DeleteMMethodById/" + id);
+            };
+
+
+            this.MMethodInDropdown = function () {
+                return $http.get(config.basePath + "MMethodInDropdown");
+            };
+
+            ////////////////////////////// CustomerMMethod ///////////////////
+
+            this.CustomerMMethodDetailsById = function (id) {
+                return $http.get(config.basePath + "CustomerMMethodDetailsById/" + id);
+            };
+
+
+
+        }]);

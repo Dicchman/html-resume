@@ -1,0 +1,183 @@
+﻿angular.module("eahara")
+    .controller("customerProfileController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.Init = function () {
+
+                $scope.Address = [];
+                $scope.Profile = {};
+
+                MainService.AddressbyCusId($scope.TokenInfo.CustomerId).then(function (response) {
+                    $scope.Address = response.data;
+                }, function (err) {
+                    
+                })  
+
+                MainService.CustomerById($scope.TokenInfo.CustomerId).then(function (response) {
+                    $scope.Profile = response.data;
+                }, function (err) {
+                    
+                    })  
+
+                $scope.IsUpdate = false;
+
+                $scope.CurAddress = {
+                    Description : "",
+                    Title : "",
+                    Location : "",
+                    CustomerId: $scope.TokenInfo.CustomerId,
+                    Lng : "",
+                    Lat : "",
+                }
+
+            }
+            $scope.Init();
+
+
+            $scope.InitMap = function () {
+                var geocoder;
+                var Mylat = 18.1019;
+                var Mylong = 78.8521;
+                if ($scope.CurrentLocationAxis != null) {
+                    Mylat = $scope.CurrentLocationAxis.lat;
+                    Mylong = $scope.CurrentLocationAxis.lng;
+                }
+                $scope.Location = {};
+                var markers = [];
+                var mapOptions = {
+                    center: {
+                        lat: Mylat,
+                        lng: Mylong
+                    },
+                    zoom: 13,
+                    disableDefaultUI: true,
+                    scrollwheel: true,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+                var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+                $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+                geocoder = new google.maps.Geocoder();
+                var input = (document.getElementById('pac-input'));
+                var autocomplete = new google.maps.places.Autocomplete(input);
+                autocomplete.bindTo('bounds', map);
+                $scope.disableTap = function () {
+                    var container = document.getElementsByClassName('pac-container');
+                    angular.element(container).attr('data-tap-disabled', 'true');
+                    var backdrop = document.getElementsByClassName('backdrop');
+                    angular.element(backdrop).attr('data-tap-disabled', 'true');
+                    angular.element(container).on("click", function () {
+                        document.getElementById('pac-input').blur();
+                    });
+                };
+
+                function setMapOnAll(map) {
+                    for (var i = 0; i < markers.length; i++) {
+                        markers[i].setMap(map);
+                    }
+                }
+
+                function geocodePosition(pos) {
+                    geocoder.geocode({
+                        latLng: pos
+                    }, function (responses) {
+                        if (responses && responses.length > 0) {
+                            $scope.$apply(function () {
+                                $scope.search = responses[0].formatted_address;
+                                document.getElementById('pac-input').value = responses[0].formatted_address;
+                               // $scope.Booking.Address = responses[0].formatted_address;
+                            });
+                        } else {
+                            console.log('Cannot determine address at this location.');
+                        }
+                    });
+                }
+
+                google.maps.event.addListener(autocomplete, 'place_changed', function () {
+                    var place = autocomplete.getPlace();
+                    if (!place.geometry) {
+                        return;
+                    }
+                    if (place.geometry.viewport) {
+                        map.fitBounds(place.geometry.viewport);
+
+
+                        var secondobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[0]];
+                        var firstobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[1]];
+
+                        var ClLongitude = (firstobj.j + firstobj.l) / 2;
+                        var ClLattitude = (secondobj.l + secondobj.j) / 2;
+
+                        $scope.CurAddress.Lat = ClLattitude;
+                        $scope.CurAddress.Lng = ClLongitude;
+                       // $scope.Booking.Address = place.name + "" + place.formatted_address;
+                    } else {
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(17);
+                        var ClLongitude = place.geometry.location.lng();
+                        var ClLattitude = place.geometry.location.lat();
+                        $scope.CurAddress.Lat = ClLattitude;
+                        $scope.CurAddress.Lng = ClLongitude;
+                    }
+                    setMapOnAll(null);
+                    google.maps.event.addListener(map, 'center_changed', function () {
+                        var ClLattitude = map.getCenter().lat();
+                        var ClLongitude = map.getCenter().lng();
+                        $scope.CurAddress.Lat = ClLattitude;
+                        $scope.CurAddress.Lng = ClLongitude;
+                        geocodePosition(map.getCenter());
+                    });
+                    $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+
+
+                });
+            }
+            $scope.InitMap();
+
+            $scope.updateClick = function () {
+                $scope.IsUpdate = true;
+            }
+
+            $scope.UpdateAddress = function (data) {
+                $scope.CurAddress = data;
+
+                $scope.CurrentLocationAxis = {};
+                $scope.CurrentLocationAxis.lng = parseFloat(data.Lng);
+                $scope.CurrentLocationAxis.lat = parseFloat(data.Lat);
+                $scope.InitMap();
+                $scope.CurAddress.Lng = parseFloat(data.Lng);
+                $scope.CurAddress.Lat = parseFloat(data.Lat);
+            }
+
+            $scope.SaveProfile = function () {
+                MainService.updateCustomer($scope.Profile).then(function (response) {
+                    if (response) {
+                        toastr.success("Success");
+                        $scope.Init();
+                    }
+                }, function () {
+                    toastr.error("Network Error");
+                })
+            }
+
+            $scope.saveAddress = function () {
+                if ($scope.CurAddress.Title == "") {
+                    toastr.warning("Enter Title");
+                }
+                else if ($scope.CurAddress.Description == "") {
+                    toastr.warning("Enter Address");
+                } else {
+                    $scope.CurAddress.CustomerId = $scope.TokenInfo.CustomerId;
+                    MainService.AddAddress($scope.CurAddress).then(function (response) {
+                        if (response) {
+                            toastr.success("Success");
+                            $scope.Init();
+                        }
+                    }, function () {
+                        toastr.error("Network Error");
+                    })
+                }
+                
+            }
+
+
+        }]);

@@ -1,0 +1,31 @@
+﻿angular.module("eahara")
+    .controller("OffersController", ["app.config", "$scope", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService", 
+        function (config, $scope, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.basePath = config.basePath;
+            $scope.init = function () {
+
+                $scope.Load = false;
+                $scope.Error = 0;
+
+                $scope.Offer = {
+                    Id: 0,
+                    Tittle: "",                   
+                    Image: "",
+                }
+
+                $scope.Offers = [];
+                MainService.GetOffers($scope.LocInfo.LocationId).then(function (response) {
+                    $scope.Offers = response.data;
+                });
+            }
+            $scope.init();
+
+
+            $scope.SelectedImage = {};
+            $scope.showModal = function (data) {
+                $scope.SelectedImage = data;
+                $('#showModal').modal('show');
+            }
+
+            }]);

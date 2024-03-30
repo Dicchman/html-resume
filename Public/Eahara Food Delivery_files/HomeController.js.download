@@ -1,0 +1,254 @@
+﻿angular.module("eahara")
+        .controller("HomeController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+                $scope.Init = function () {
+
+                    $scope.Partners = [];
+                    $scope.Shops = [];
+                    $scope.NearShops = [];
+                    $scope.Offers = [];
+                    $scope.Categories = [];
+                    $scope.ShopsCategories = [];
+                    $scope.Skip = 0;
+                    $scope.IsFirst = 0;
+                    $scope.ShopsLoad = true;
+                    $scope.CurrentLocation = "";
+
+		          
+                    MainService.ItemCategoryInDropdown().then(function (response) {
+                        if (response) {
+                            $scope.Categories = response.data;
+                        }
+                    }, function () {
+                        $scope.SLoad = false;
+                    });
+
+                    MainService.GetOffersInHome($scope.LocInfo.LocationId).then(function (response) {
+                        if (response) {
+                            $scope.Offers = response.data;
+                        }
+                    }, function () {
+                        $scope.SLoad = false;
+                    });
+
+                    MainService.ShopCategoryInDropdown().then(function (response) {
+                        if (response) {
+                            $scope.ShopsCategories = response.data;
+                        }
+                    }, function () {
+                        $scope.SLoad = false;
+                    })
+
+                    $scope.Filter = {
+                        Preference: false,
+                        Preference2: false,
+                        Keyword: "",
+                        OrderNo: "",
+                        Pagenation: 0,
+                        ShopsCategories: [],
+                        ItemCategories: [],
+                        LocationId: $scope.LocInfo.LocationId,
+                    }
+
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+                                            
+                    MainService.PartnersInHome($scope.Skip).then(function (response) {
+                        if (response) {
+                            $scope.Partners = response.data;
+                        }
+                    }, function () {
+                        $scope.SLoad = false;
+                        })
+
+                    $scope.now = new Date();
+                    $scope.Time = $scope.now.getHours();
+                    $scope.Minutes = $scope.now.getMinutes();
+                    $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                    $scope.CurrentTime = parseFloat($scope.CurrentTime);
+
+                    navigator.geolocation.getCurrentPosition(function (location) {
+
+                        var loc = {};
+                        loc.lng = location.coords.longitude;
+                        loc.lat = location.coords.latitude;
+
+                        MainService.NearShopsInHome(loc).then(function (response) {
+                            if (response) {
+                                $scope.NearShops = response.data;
+                            }
+                        }, function (err) {})
+
+                        var geocoder = new google.maps.Geocoder();
+                        geocoder.geocode({
+                            'latLng': loc
+                        }, function (results, status) {
+                            if (status == google.maps.GeocoderStatus.OK) {
+                                if (results[1]) {
+                                    $scope.CurrentLocation = results[1].formatted_address;
+                                }
+                            }
+                            });
+
+                    });
+
+                }
+           
+
+                $scope.initlochome = function () {
+                    $scope.LocInfo = AuthenticationService.getLocInfo();
+                    if ($scope.LocInfo != null) {
+                        $scope.Init();
+                    } else {
+                        $state.go("locations");
+                        toastr.info("Select Location Point!");
+                    }
+                };
+                $scope.initlochome();
+
+                $scope.ApplyFilter = function () {
+                    $scope.ShopsLoad = true;
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                            $scope.Filter.Keyword = "";
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+                }
+
+                $scope.ApplyFilter2 = function () {
+                    
+                    $scope.ShopsLoad = true;
+                    $scope.Filter.ShopsCategories = [];
+                    angular.forEach($scope.ShopsCategories, function (e) {
+                        if (e.IsChecked) {
+                            $scope.Filter.ShopsCategories.push(e.Id)
+                        }
+                    });
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                            $scope.Filter.Keyword = "";
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+                }
+
+                $scope.ApplyFilter3 = function () {
+                    $scope.ShopsLoad = true;
+
+                    $scope.Filter.ItemCategories = [];
+                    angular.forEach($scope.Categories, function (e) {
+                        if (e.IsChecked) {
+                            $scope.Filter.ItemCategories.push(e.Id)
+                        }
+                    });
+
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                            $scope.Filter.Keyword = "";
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+                }
+
+                $scope.GoPrev = function () {
+                    $scope.ShopsLoad = true;
+                    $scope.Filter.Pagenation = $scope.Filter.Pagenation - 20;
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                            $scope.Filter.Keyword = "";
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+
+                }
+
+                $scope.GoNext = function () {
+                    $scope.ShopsLoad = true;
+                    $scope.Filter.Pagenation = $scope.Filter.Pagenation + 20;
+                    MainService.ShopsInHome($scope.Filter).then(function (response) {
+                        if (response) {
+                            $scope.Shops = response.data;
+                            $scope.Filter.Keyword = "";
+                        }
+                        $scope.ShopsLoad = false;
+                    }, function () {
+                        $scope.ShopsLoad = false;
+                    })
+
+                }
+
+                
+                setInterval(function () {
+                    if ($scope.IsFirst == 0){
+                        $scope.Skip = $scope.Skip + 6;
+                    } else {
+                        $scope.IsFirst = 0;
+                    }
+                    if ($scope.LocInfo != null) {
+                        MainService.PartnersInHome($scope.Skip).then(function (response) {
+                            $scope.Partners = response.data;
+                            if ($scope.Partners.length < 6 || $scope.Partners == null) {
+                                $scope.Skip = 0;
+                                $scope.IsFirst = 1;
+                            }
+                        })
+                    }
+                }, 5000);
+
+                $scope.goToItems = function (Id) {
+                    $state.go('items', {
+                        ItemCatId: Id
+                    });
+                }
+
+                $scope.goToDetails = function (data) {
+                    $state.go('ShopDetails', {
+                        ShopId: data.Id,
+                        Name: data.Name,
+                    });
+                }
+
+                $scope.Results = null;
+                $scope.TrackLoad = false;
+                $scope.TrackNow = function () {
+                    if ($scope.Filter.OrderNo == "") {
+                        toastr.warning("Invalid Data Given!");
+                    } else {
+                        $scope.TrackLoad = true;
+                        MainService.TrackOrder($scope.Filter.OrderNo).then(function (response) {
+                            if (response.data != null) {
+                                $scope.Results = response.data;
+                            } else {
+                                toastr.warning("Invalid Data Given!");
+                            }
+                            $scope.TrackLoad = false;
+                        }, function () {
+                            $scope.TrackLoad = false;
+                            toastr.error("Network Error");
+                        })
+                    }                    
+                }
+
+
+
+            }])

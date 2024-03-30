@@ -1,0 +1,395 @@
+﻿angular.module("eahara")
+        .controller("CheckOutController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService","CookiesServices",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService, CookiesServices) {
+
+                $scope.InitMap = function () {
+                    var geocoder;
+                    var Mylat = 18.1019;
+                    var Mylong = 78.8521;
+                    if ($scope.CurrentLocationAxis != null) {
+                        Mylat = $scope.CurrentLocationAxis.lat;
+                        Mylong = $scope.CurrentLocationAxis.lng;
+                        $scope.Booking.Lat = $scope.CurrentLocationAxis.lat;
+                        $scope.Booking.Lng = $scope.CurrentLocationAxis.lng;
+                    }
+                    $scope.Location = {};
+                    var markers = [];
+                    var mapOptions = {
+                        center: {
+                            lat: Mylat,
+                            lng: Mylong
+                        },
+                        zoom: 13,
+                        disableDefaultUI: true,
+                        scrollwheel: true,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    };
+                    var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+                    $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+                    geocoder = new google.maps.Geocoder();
+                    var input = (document.getElementById('pac-input'));
+                    var autocomplete = new google.maps.places.Autocomplete(input);
+                    autocomplete.bindTo('bounds', map);
+                    $scope.disableTap = function () {
+                        var container = document.getElementsByClassName('pac-container');
+                        angular.element(container).attr('data-tap-disabled', 'true');
+                        var backdrop = document.getElementsByClassName('backdrop');
+                        angular.element(backdrop).attr('data-tap-disabled', 'true');
+                        angular.element(container).on("click", function () {
+                            document.getElementById('pac-input').blur();
+                        });
+                    };
+
+                    function setMapOnAll(map) {
+                        for (var i = 0; i < markers.length; i++) {
+                            markers[i].setMap(map);
+                        }
+                    }
+
+                    function geocodePosition(pos) {
+                        geocoder.geocode({
+                            latLng: pos
+                        }, function (responses) {
+                            if (responses && responses.length > 0) {
+                                $scope.$apply(function () {
+                                    $scope.search = responses[0].formatted_address;
+                                    document.getElementById('pac-input').value = responses[0].formatted_address;
+                                    $scope.Booking.Address = responses[0].formatted_address;
+                                });
+                            } else {
+                                console.log('Cannot determine address at this location.');
+                            }
+                        });
+                    }
+
+                    google.maps.event.addListener(autocomplete, 'place_changed', function () {
+                        var place = autocomplete.getPlace();
+                        if (!place.geometry) {
+                            return;
+                        }
+                        if (place.geometry.viewport) {
+                            map.fitBounds(place.geometry.viewport);
+
+
+                            var secondobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[0]];
+                            var firstobj = place.geometry.viewport[Object.keys(place.geometry.viewport)[1]];
+
+                            var ClLongitude = (firstobj.j + firstobj.l) / 2;
+                            var ClLattitude = (secondobj.l + secondobj.j) / 2;
+
+                            $scope.Booking.Lat = ClLattitude;
+                            $scope.Booking.Lng = ClLongitude;
+                            $scope.Booking.Address = place.name + "" + place.formatted_address;
+                        } else {
+                            map.setCenter(place.geometry.location);
+                            map.setZoom(17);
+                            var ClLongitude = place.geometry.location.lng();
+                            var ClLattitude = place.geometry.location.lat();
+                            $scope.Booking.Lat = ClLattitude;
+                            $scope.Booking.Lng = ClLongitude;
+                        }
+                        setMapOnAll(null);
+                        google.maps.event.addListener(map, 'center_changed', function () {
+                            var ClLattitude = map.getCenter().lat();
+                            var ClLongitude = map.getCenter().lng();
+                            $scope.Booking.Lat = ClLattitude;
+                            $scope.Booking.Lng = ClLongitude;
+                            geocodePosition(map.getCenter());
+                        });
+                        $('<div/>').addClass('centerMarker').appendTo(map.getDiv())
+
+
+                    });
+                }
+                $scope.InitMap();
+
+
+
+                $scope.Init = function () {
+
+                    $scope.Booking = {
+                        Description: "",
+                        Remarks: "",
+                        Time: "",
+                        Name: "",
+                        MobileNo: "",
+                        EmailId: "",
+                        AddressId: "",
+                        Address: "",
+                        Lat: "",
+                        Lng: "",
+                        Code: "",
+                        LocationId: "",
+                        IsOffer: false,
+                        OrderDate: new Date(),
+                    }
+
+                    $scope.Locations = [];
+                    MainService.LocationInDropdown().then(function (response) {
+                        $scope.Locations = response.data;
+                    })
+
+                    $scope.Address = [];
+                    $scope.Customer = {};
+                    if ($scope.IsLoggedIn == true) {                       
+                        MainService.AddressbyCusId($scope.TokenInfo.CustomerId).then(function (response) {
+                            $scope.Address = response.data;
+                        }) 
+
+                        MainService.CustomerById($scope.TokenInfo.CustomerId).then(function (response) {
+                            $scope.Customer = response.data;
+                        }) 
+                    }
+
+                    $scope.ViewCheckoutPage = 0;
+
+                    if ($scope.Shop.AverageCost <= ($scope.Total - $scope.TotalDeliveryCharge)) {
+                        $scope.ViewCheckoutPage = 1;
+                    }
+                    $scope.CurrentLocationAxis = {};
+                    navigator.geolocation.getCurrentPosition(function (location) {
+
+                        var loc = {};
+                        loc.lng = location.coords.longitude;
+                        loc.lat = location.coords.latitude;
+                        $scope.CurrentLocationAxis = loc;
+                        $scope.InitMap();
+                        $scope.Load = true;
+                        MainService.NearShopsInHome2(loc).then(function (response) {
+                            if (response) {
+                                $scope.NearShops = response.data;
+                            }
+                            $scope.Load = false;
+                        }, function (err) {
+                            $scope.Load = false;
+                        })
+
+                    });
+
+                }
+
+
+                $scope.SelectAddress = function (data) {
+                    $scope.Booking.AddressId = data.Id;
+                    $scope.Booking.Address = data.Description;
+                    $scope.Booking.Location = data.Location;
+
+                    $scope.CurrentLocationAxis.lng = parseFloat(data.Lng);
+                    $scope.CurrentLocationAxis.lat = parseFloat(data.Lat);
+                    $('#myModal').modal('hide');
+                    $scope.InitMap();
+                }
+               
+
+                var cookieKey = 'eaharacart';                                        //cookie key
+                $scope.ordersToCheckout = [];
+                CookiesServices.init(cookieKey);                               //initializing cookie  
+                var cartCookies = CookiesServices.getCookie(cookieKey);        //store cookie in cartCookies 
+                if (cartCookies.length > 0) {
+                    $scope.ordersToCheckout = cartCookies;                     //store cookies into our orders to checkout 
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        $scope.SelectedShopId = e.ShopId;
+                    });                   
+                }
+
+                $scope.Total = 0;
+                $scope.Total2 = 0;
+                $scope.TotalDeliveryCharge = 0;
+                $scope.SubTotal = 0;
+                $scope.WalletCash = 0;
+
+                angular.forEach($scope.ordersToCheckout, function (e) {
+                    $scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                    $scope.TotalDeliveryCharge = e.DelCharge;
+                    $scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                    $scope.Total = ($scope.TotalDeliveryCharge + $scope.SubTotal) - $scope.WalletCash;
+                });
+
+
+                $scope.Shop = {};
+                MainService.ShopDetailById($scope.SelectedShopId).then(function (res) {
+                    $scope.Shop = res.data;
+                    $scope.Init();
+                }, function (err) {
+                    // $scope.GetShopItemsHavingOffer();
+                });
+
+         
+                $scope.AddBooking = function () {
+                    console.log($scope.Booking);
+                    $scope.Load = false;
+                    if ($scope.Booking.Name == "" && $scope.IsLoggedIn == false) {
+                        toastr.warning("Enter Name");
+                    } else if ($scope.Booking.MobileNo == "" && $scope.IsLoggedIn == false) {
+                        toastr.warning("Enter Mobile No");
+                    } else if ($scope.Booking.MobileNo.toString().length != 10 && $scope.IsLoggedIn == false) {
+                        toastr.warning("Enter Valid Mobile No");
+                    }  else if ($scope.Booking.Address == "") {
+                        toastr.warning("Enter Address");
+                    }  else {
+
+                        $scope.Booking.BookingDetails = [];
+
+                        angular.forEach($scope.ordersToCheckout, function (e) {
+                            var data = {
+                                Quantity: e.Quantity,
+                                Price: e.Price,
+                                TotalPrice: e.DiscountPrice * e.Quantity,
+                                DiscountPrice: e.DiscountPrice,
+                                DelCharge: e.DelCharge,
+                                ItemId: e.Id,
+                                ShopId: e.ShopId
+                            }
+                            $scope.Booking.BookingDetails.push(data);
+                        });
+
+                        $scope.Booking.Total = $scope.Total;
+                        $scope.Booking.ShopId = $scope.SelectedShopId;
+                        $scope.Booking.TotalDeliveryCharge = $scope.TotalDeliveryCharge;
+                        $scope.Booking.SubTotal = $scope.SubTotal;
+                        $scope.Booking.WalletCash = $scope.WalletCash;
+
+                        if ($scope.Booking.PromoOfferId > 0) {
+                            $scope.Booking.PromoOfferPrice = $scope.Total2 - $scope.SubTotal;
+                        }
+                        if ($scope.IsLoggedIn == true) {
+                            $scope.Booking.CustomerId = $scope.TokenInfo.CustomerId;
+                        }
+
+                        $scope.Load = true;
+
+                        $scope.Booking.Month = $scope.Booking.OrderDate.getMonth() + 1;
+                        $scope.Booking.Day = $scope.Booking.OrderDate.getDate();
+                        $scope.Booking.Year = $scope.Booking.OrderDate.getFullYear();
+                        $scope.Booking.Hour = $scope.Booking.OrderDate.getHours();
+                        $scope.Booking.Minutes = $scope.Booking.OrderDate.getMinutes();
+
+                        MainService.AddBooking($scope.Booking).then(function (response) {
+                            if (response.data != null) {
+                                if (response.data.Id > 0) {
+                                    $scope.Load = false;
+                                    toastr.success("Booking Successfully Added With Referance No : " + response.data.RefNo);
+                                    $scope.ordersToCheckout = [];
+                                    CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+                                    $scope.updateCart();
+                                    $state.go("home");
+                                } else if (response.data.Id == -1) {
+                                    toastr.warning(response.data.Description);
+                                    $scope.Load = false;
+                                } else {
+                                    $scope.Load = false;
+                                    toastr.warning("Failed");
+                                }
+                            } else {
+                                $scope.Load = false;
+                                toastr.warning("Failed");
+                            }
+                        }, function (err) {
+                            toastr.error("Network Error");
+                            $scope.Load = false;
+                        });
+                    }
+
+                }
+
+                $scope.ApplyOffer = function () {
+
+                    $scope.Offer.IsSelected = true;
+                    $scope.Booking.PromoOfferId = $scope.Offer.Id;
+
+                    $scope.Total = 0;
+                    $scope.Total2 = 0;
+                    $scope.TotalDeliveryCharge = 0;
+                    $scope.SubTotal = 0;
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        $scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                        $scope.TotalDeliveryCharge = e.DelCharge;
+                        $scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                        $scope.Total = ($scope.TotalDeliveryCharge + $scope.SubTotal) - $scope.WalletCash;
+                    });
+
+                                       
+                    $scope.Total2 = angular.copy($scope.SubTotal); 
+                    if ($scope.Offer.IsPercentage) {
+                        var offervalue = ($scope.SubTotal * $scope.Offer.Value) / 100;
+                        if (offervalue > $scope.Offer.MaxValue) {
+                            offervalue = $scope.Offer.MaxValue;
+                        }
+                        var price = $scope.SubTotal - offervalue;
+                        price = Math.round(price * 100) / 100;
+                        $scope.SubTotal = price;
+                    } else {
+                        if ($scope.Offer.Value > $scope.Offer.MaxValue) {
+                            $scope.Offer.Value = $scope.Offer.MaxValue;
+                        }
+                        $scope.SubTotal = $scope.SubTotal - $scope.Offer.Value;
+                    }
+                    $scope.Total = ($scope.TotalDeliveryCharge + $scope.SubTotal) - $scope.WalletCash;
+
+                    
+                }
+                
+                $scope.checkCode = function () {
+                    if ($scope.Booking.Code == "") {
+                        toastr.warning("Invalid Code !");
+                    } else {
+                        $scope.Load = true;
+                        $scope.Booking.IsOffer = false;
+                        MainService.CheckPromoOffersByCusId($scope.Booking.Code, $scope.TokenInfo.CustomerId).then(function (response) {
+                            if (response.data != null) {
+                                if (response.data.Id > 0) {
+                                    //if ($scope.Total <= response.data.MaxValue) {
+                                        
+                                    //} else {
+                                    //    toastr.info("To Avail Promo-Discount, Make order Below * " + response.data.MaxValue);
+                                    //}
+                                    toastr.success("Offer Applied");
+                                    $scope.Offer = response.data;
+                                    $scope.Booking.IsOffer = true;
+                                    $scope.ApplyOffer();
+                                } else {
+                                    toastr.success("Promo code has already been availed");
+                                }
+                            } else {
+                                toastr.warning("Invalid Promo Code, please enter correct code to avail discount.");
+                            }                            
+                            $scope.Load = false;
+                        }, function (err) {
+                            $scope.Load = false;
+                        });
+                    }
+                }
+
+                $scope.RemoveOffer = function () {
+
+                    $scope.Total = 0;
+                    $scope.TotalDeliveryCharge = 0;
+                    $scope.SubTotal = 0;
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        $scope.SubTotal = $scope.SubTotal + (e.Quantity * e.DiscountPrice);
+                        $scope.TotalDeliveryCharge = e.DelCharge;
+                        $scope.SubTotal = Math.round($scope.SubTotal * 100) / 100;
+                        $scope.Total = ($scope.TotalDeliveryCharge + $scope.SubTotal) - $scope.WalletCash;
+                    });
+
+                    $scope.Total2 = angular.copy($scope.SubTotal); 
+                    $scope.Booking.IsOffer = false;
+                    $scope.Booking.PromoOfferId = "";
+                    $scope.Booking.Code = "";
+
+                }
+
+                $scope.UseWallet = function () {
+
+                    var pts = 0;
+                    if ($scope.Customer.Points >= $scope.CompanyProfile.WalletLimit) {
+                        pts = $scope.CompanyProfile.WalletLimit
+                    } else {
+                        pts = $scope.Customer.Points;
+                    }
+                    $scope.WalletCash = pts;
+                    $scope.Total = ($scope.TotalDeliveryCharge + $scope.SubTotal) - $scope.WalletCash;
+
+                }
+
+            }])

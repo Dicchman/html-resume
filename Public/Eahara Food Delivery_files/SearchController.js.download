@@ -1,0 +1,49 @@
+﻿angular.module("eahara")
+        .controller("SearchController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+            function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+
+                $scope.Init = function () {
+                   
+                    $scope.Shops = [];
+                    $scope.Items = [];
+               
+
+                    if ($stateParams.Keyword != null && $stateParams.Keyword != "" && $stateParams.Keyword != undefined) {
+
+                        MainService.ShopsByKeyword($stateParams.Keyword, $scope.LocInfo.LocationId).then(function (response) {
+                            $scope.Shops = response.data;
+                        })
+
+                        MainService.ItemsByKeyword($stateParams.Keyword, $scope.LocInfo.LocationId).then(function (response) {
+                            $scope.Items = response.data;
+                        })
+
+                    }
+
+                    $scope.now = new Date();
+                    $scope.Time = $scope.now.getHours();
+                    $scope.Minutes = $scope.now.getMinutes();
+                    $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                    $scope.CurrentTime = parseFloat($scope.CurrentTime);   
+
+                }               
+                $scope.Init();
+
+                
+                $scope.goToDetails1 = function (data) {
+                    $state.go('ShopDetails', {
+                        ShopId: data.Id,
+                        Name: data.Name,
+                    });
+                }
+
+                $scope.goToDetails = function (data) {
+                    $state.go('ItemsDetails', {
+                        ItemId: data.Id,
+                        Name: data.Name,
+                    });
+                }
+                
+                
+            }])

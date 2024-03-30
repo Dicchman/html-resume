@@ -1,0 +1,125 @@
+﻿angular.module("eahara")
+    .controller("ItemsDetailsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService", "CookiesServices",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService, CookiesServices) {
+
+            $scope.init = function () {
+
+                $scope.now = new Date();
+                $scope.Time = $scope.now.getHours();
+                $scope.Minutes = $scope.now.getMinutes();
+                $scope.CurrentTime = $scope.Time + "." + $scope.Minutes;
+                $scope.CurrentTime = parseFloat($scope.CurrentTime);      
+
+                $scope.Item = {};
+                $scope.Items = [];
+
+                if ($stateParams.ItemId != null) {
+
+                    MainService.ItemDetailById($stateParams.ItemId).then(function (res) {
+                        $scope.Item = res.data;
+                        $scope.Item.Quantity = 1;
+
+                        MainService.ItemsByCatId($scope.Item.ItemCategoryId, $scope.LocInfo.LocationId).then(function (res) {
+                            $scope.Items = res.data;
+                        })
+                        
+                    })
+                }
+
+                $scope.ViewVal = 0;
+
+            }
+            $scope.init();
+
+
+            $scope.SelectedImage = {};
+            $scope.showModal = function (data) {
+                $scope.SelectedImage = data;
+                $('#showModal').modal('show');
+            }
+
+            $scope.goToDetails = function (data) {
+                $state.go('ItemsDetails', {
+                    ItemId: data.Id,
+                    Name: data.Name,
+                });
+            }
+
+            /////////// add to cart //////////
+
+            var cookieKey = 'eaharacart'; //cookie key
+            $scope.initMyCart = function () {                
+                $scope.ordersToCheckout = [];
+                CookiesServices.init(cookieKey); //initializing cookie  
+                var cartCookies = CookiesServices.getCookie(cookieKey); //store cookie in cartCookies 
+                if (cartCookies.length > 0) {
+                    $scope.ordersToCheckout = cartCookies; //store cookies into our orders to checkout
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        $scope.SelectedShopId = e.ShopId;
+                    });
+                }
+            }
+            $scope.initMyCart();
+
+            $scope.AddToCart = function () {
+
+                if ($scope.Item.Shop.StartTime > $scope.CurrentTime || $scope.Item.Shop.EndTime < $scope.CurrentTime) {
+                    toastr.info("Shop Closed Cannot Process Now");
+                } else if ($scope.Item.ShopId != $scope.SelectedShopId && $scope.ordersToCheckout.length > 0) {
+                    toastr.info("To add items from another retsurant first complete this order and make a another order from the required resturant  * you cannot add items from multiple resturants in single order*");
+                } else if ($scope.Item.InActive == true) {
+                    toastr.info("Sorry Item Not Available Now ! ");
+                } else if ($scope.Item.Quantity <= 0) {
+                    toastr.info("Sorry Invalid Quantity ! ");
+                }else {
+                 
+                    $scope.ToCart = {
+                        Id: $scope.Item.Id,
+                        ShopId: $scope.Item.ShopId,
+                        Shop: $scope.Item.Shop.Name,
+                        Name: $scope.Item.Name,
+                        Price: $scope.Item.Price,
+                        DiscountPrice: $scope.Item.OfferPrice,
+                        DelCharge: $scope.Item.Shop.DeliveryCharge,
+                        Image: $scope.Item.Image,
+                        Quantity: $scope.Item.Quantity,
+                    }
+
+                    $scope.isThere = false;
+                    angular.forEach($scope.ordersToCheckout, function (e) {
+                        if (e.Id == $scope.Item.Id) {
+                            $scope.isThere = true;
+                            e.Quantity = e.Quantity + $scope.Item.Quantity;
+                            e.Price = $scope.Item.Price;
+                            e.DiscountPrice = $scope.Item.OfferPrice;
+                        }
+                    });
+
+                    if ($scope.isThere == false) {
+                        $scope.ordersToCheckout.push($scope.ToCart);
+                    }
+
+                    CookiesServices.updateCookies(cookieKey, $scope.ordersToCheckout);
+                    $scope.updateCart();
+                    $scope.Item.Quantity = 1;
+                    toastr.success("Successfully Added to Cart");
+                    $scope.initMyCart();
+                }
+
+            }
+
+
+            $scope.SelectedImage2 = {};
+            $scope.showModal2 = function (data) {
+                $scope.SelectedImage2 = data;
+                $('#showModal2').modal('show');
+            }
+
+            $scope.goToShopDetails = function () {
+                $state.go('ShopDetails', {
+                    ShopId: $scope.Item.ShopId,
+                    Name: $scope.Item.Shop.Name,
+                });
+            }
+
+        }])

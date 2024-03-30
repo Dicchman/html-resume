@@ -1,0 +1,82 @@
+﻿angular.module("eahara")
+    .service('AuthenticationService', ['$q', '$window', '$http', "app.config", "localStorageService",
+        function ($q, $window, $http, config, localStorageService) {
+            var tokenInfo;
+
+            this.init = function () {
+                tokenInfo = this.getTokenInfo();
+            };
+
+            this.setTokenInfo = function (tokenInfo) {
+                tokenInfo = {
+                    UserName: tokenInfo.UserName,
+                    Token: tokenInfo.Token,
+                    Id: tokenInfo.UserId,
+                    Role: tokenInfo.Role,
+                    ClientId: tokenInfo.ClientId,
+                    ShopId: tokenInfo.ShopId,
+                    EmployeeId: tokenInfo.EmployeeId,
+                    CustomerId: tokenInfo.CustomerId,
+
+                };
+                localStorageService.set("EaharaTokenInfo", JSON.stringify(tokenInfo));
+            };
+
+            this.getTokenInfo = function () {
+                tokenInfo = JSON.parse(localStorageService.get("EaharaTokenInfo"));
+                return tokenInfo;
+            };
+
+            this.removeTokenInfo = function () {
+                localStorageService.clearAll();
+            };
+
+
+
+            this.setLanInfo = function (LanInfo) {
+                lanInfo = LanInfo
+                localStorageService.set("Language", JSON.stringify(lanInfo));
+            };
+
+            this.getlanInfo = function () {
+                LanInfo = JSON.parse(localStorageService.get("Language"));
+                return LanInfo;
+            };
+
+            this.setFilterInfo = function (FilterInfo) {
+                filterInfo = FilterInfo
+                localStorageService.set("Filter", JSON.stringify(filterInfo));
+            };
+
+            this.getFilterInfo = function () {
+                FilterInfo = JSON.parse(localStorageService.get("Filter"));
+                return FilterInfo;
+            };
+
+            this.setHeader = function (config) {
+                var token = tokenInfo ? tokenInfo.Token : null;
+                if (token) {
+                   config.headers['Authorization'] = 'Basic ' + token;
+                }
+            };
+
+            this.setLocInfo = function (data) {
+                tokenInfo = data;
+                localStorageService.set("EaharaLocInfo", JSON.stringify(tokenInfo));
+            };
+
+            this.getLocInfo = function () {
+                //console.log(LocalStorageFactory.get("TokenInfo"));
+                tokenInfo = JSON.parse(localStorageService.get("EaharaLocInfo"));
+                return tokenInfo;
+            };
+
+            this.removeLocInfo = function () {
+                var tokenInfo = null;
+                localStorageService.set("EaharaLocInfo", JSON.stringify(tokenInfo));
+                //LocalStorageFactory.clearAll();
+            };
+
+            this.init();
+        }
+    ])

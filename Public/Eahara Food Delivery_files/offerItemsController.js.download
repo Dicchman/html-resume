@@ -1,0 +1,28 @@
+﻿angular.module("eahara")
+    .controller("offerItemsController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.init = function () {
+
+                $scope.Items = [];
+                $scope.Categories = [];
+
+                if ($stateParams.OfferId != null) {
+
+                    MainService.ItemsByOfferId($stateParams.OfferId).then(function (res) {
+                        $scope.Items = res.data;
+                    })
+                }
+
+            }
+            $scope.init();
+
+            $scope.goToDetails = function (data) {
+                $state.go('ItemsDetails', {
+                    ItemId: data.Id,
+                    Name: data.Name,
+                });
+            }
+
+
+        }])

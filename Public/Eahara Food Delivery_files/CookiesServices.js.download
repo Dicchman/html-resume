@@ -1,0 +1,32 @@
+﻿angular.module("eahara")
+.service('CookiesServices', ['$q', '$window', "$http", "app.config", "$cookies",
+function ($q, $window, $http, config, $cookies) {
+
+    this.cart = {};
+
+    this.init = function (key) {
+        var strCart = $cookies.get(key);
+        if (strCart != null) {
+            this.cart = JSON.parse(strCart);
+        }
+    };
+
+    this.getCookie = function (key) {
+        var strCart = $cookies.get(key);
+        if (strCart != null) {
+            this.cart = JSON.parse(strCart);
+        }
+        return this.cart;
+    };
+
+    this.updateCookies = function (key, array) {
+        this.cart = array;
+        var strCart = JSON.stringify(this.cart);
+        $cookies.put(key, strCart);
+    };
+
+    this.deleteCookie = function (key) {   //to delete a cart item
+        $cookies.remove(key);
+    };
+
+}]);

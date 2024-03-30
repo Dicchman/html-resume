@@ -1,0 +1,110 @@
+﻿
+            angular.module("eahara")
+                .controller("TroubleLoginController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService",
+                    function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService) {
+
+            $scope.Init = function () {
+
+                $scope.Register = {
+                    MobileNo: "",
+                    OTP: 0,
+                }
+
+                $scope.User = {
+                    Id: "",
+                    Password: "",
+                    CPassword: ""
+                }
+
+                $scope.View = 0;
+                $scope.Otp = 0;
+                $scope.load = false;
+            }
+            $scope.Init();
+
+            $scope.ResetTroublePswd = function () {
+
+                if ($scope.User.Password == "") {
+
+                    toastr.warning("Enter Password");
+                    
+                } else if ($scope.User.CPassword == "") {
+                    
+                    toastr.warning("Confirm Password");
+                   
+                } else if ($scope.User.Password != $scope.User.CPassword) {
+                   
+                    toastr.warning("Password Mismatch");
+                    
+                } else {
+                    
+                    $scope.load = true;
+                    MainService.ResetTroublePswd($scope.User).then(function (response) {
+                        if (response.data) {                           
+                                toastr.warning('Successfully Resetted');                            
+                               $state.go("login");
+                        }else {
+                            toastr.error('Network Error');                           
+                        }
+                        $scope.load = false;
+                    }, function (err) {
+                        $scope.load = false;
+                        toastr.error('Network Error');                       
+                    });
+                }
+            };
+
+            $scope.SendOtp = function () {
+
+                if ($scope.Register.MobileNo == "") {
+                   
+                        toastr.warning('Enter Mobile No');
+                   
+                } else {                   
+                    $scope.load = true;
+                    MainService.SendTroubleOtp($scope.Register.MobileNo).then(function (response) {
+                        if (response.data.Message == "NotRegistered") {
+                            
+                                toastr.warning('Mobile  Not Registered');
+                           
+                           
+                        } else if (response.data.Message == "Done") {
+                            
+                                toastr.warning('OTP Send');
+                            
+                            $scope.Otp = response.data.OTP;
+                            $scope.User.Id = response.data.UserId;
+                            $scope.View = 1;
+                           
+                        } else if (response.data.Message == "NoUser") {
+                            
+                                toastr.warning('Operation Cannot Proceed Please Contact Us');
+                            
+                           
+                        } else {                            
+                                toastr.warning('Some Error Occurred! Please Try Again Later');                          
+                        }
+                        $scope.load = false;
+                    }, function (err) {
+                        $scope.load = false;
+                        toastr.error('Network Error');                     
+                    });
+                }
+            };
+
+            $scope.CheckOtp = function () {
+                if ($scope.Register.OTP == 0) {
+                   
+                        toastr.warning('Enter OTP No');
+                    
+                } else if ($scope.Register.OTP != $scope.Otp) {
+                    
+                        toastr.warning('OTP No Not Matching');
+                    
+                } else {
+                    $scope.View = 2;
+                }
+            }
+
+
+        }]);

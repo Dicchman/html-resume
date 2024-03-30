@@ -1,0 +1,276 @@
+﻿angular.module("eahara")
+    .controller("InitController", ["app.config", "$scope", "LoginService", "AuthenticationService", "$state", "$stateParams", "MainService", "localStorageService", "CookiesServices",
+        function (config, $scope, LoginService, AuthenticationService, $state, $stateParams, MainService, localStorageService, CookiesServices) {
+
+            $scope.basePath = config.basePath;
+            
+            var size = screen.width;
+         
+            if (size < 900) {
+                $('#appsmodal').modal('show');
+            }
+
+
+            $scope.InitLoc = function () {
+
+                $scope.LocInfo = AuthenticationService.getLocInfo();
+                $scope.LocationSelected = false;
+                if ($scope.LocInfo != null) {
+                    MainService.checkLocationActive($scope.LocInfo.LocationId).then(function (response) {
+                        if (response.data != null) {
+                            $scope.LocInfo = response.data;
+                            $scope.LocInfo.LocationId = response.data.Id;
+                            $scope.LocationSelected = true;
+                        } else {
+                            $state.go("locations");
+                            toastr.info("Select Location Point!");
+                        }
+                    }, function () {
+                        $ionicLoading.hide();
+                        $state.go("locations");
+                        toastr.info("Select Location Point!");
+                    })
+                } else {
+                    $state.go("locations");
+                    toastr.info("Select Location Point!");
+                }
+
+            }
+            $scope.InitLoc();
+
+            $scope.ChangeLocation = function (data) {
+                data.LocationId = data.Id;
+                AuthenticationService.setLocInfo(data);
+                $scope.LocInfo = AuthenticationService.getLocInfo();
+                $scope.LocationSelected = true;
+                $state.go("home");
+
+                var cookieKey = "eaharacart";
+                CookiesServices.init(cookieKey);
+                var cartCookies = CookiesServices.getCookie(cookieKey);
+                if (cartCookies.length > 0) {
+                    toastr.info("Location Changed Resetting Cart !!");
+                    var ordersToCheckout = [];
+                    CookiesServices.updateCookies(cookieKey, ordersToCheckout);
+                    $scope.updateCart();
+                }
+
+            };
+
+
+            $scope.CompanyProfile = {};
+            MainService.GetCompanyProfile().then(function (res) {
+                $scope.CompanyProfile = res.data;
+            })
+
+            $scope.ShopCategories = [];
+            MainService.ShopCategoryInDropdown().then(function (response) {
+                $scope.ShopCategories = response.data;
+            });
+
+            $scope.goToShopCategories = function (Id) {
+                $state.go('Shop', {
+                    CategoryId: Id
+                });
+            }
+
+
+            $scope.InitLogin = function () {
+                $scope.IsLoggedIn = false;
+                $scope.TokenInfo = AuthenticationService.getTokenInfo();
+                if ($scope.TokenInfo != null) {
+                    $scope.IsLoggedIn = true;
+                }
+
+                $scope.SearchTab = {
+                    Keyword: "",  
+                }
+                
+
+            }
+            $scope.InitLogin();
+
+            $scope.NotifiCount = 0;
+            setInterval(function () {
+                if ($scope.TokenInfo != null) {
+                    MainService.getNotiCaount($scope.TokenInfo.Id).then(function (res) {
+                        $scope.NotifiCount = res.data;
+                    })
+                }
+            }, 10000);
+
+            $scope.Notifications = [];
+            $scope.GetNotifications = function () {
+                MainService.GetUserNotifications($scope.TokenInfo.Id).then(function (res) {
+                    $scope.Notifications = res.data;
+                })
+                MainService.resetUserNotifications($scope.TokenInfo.Id).then(function (res) {
+                    $scope.isnotificlear = res.data;
+                })
+            }
+
+
+            ///////////// cart /////////
+
+            $scope.cartLength = 0;
+            $scope.updateCart = function () {
+                $scope.cartLength = 0;
+                var cookieKey = "eaharacart";
+                CookiesServices.init(cookieKey);
+                var cartCookies = CookiesServices.getCookie(cookieKey);
+                if (cartCookies.length > 0) {
+                    $scope.cartLength = cartCookies.length;
+                }
+            };
+            $scope.updateCart();
+
+            ////////////// end cart //////////
+            
+            $scope.Search = {
+                Keyword: "",
+            }
+
+            $scope.GoSearch = function () {
+                $state.go("Search", { Keyword: $scope.Search.Keyword });
+            }
+
+            $scope.GoOfferItems = function (id) {
+                $state.go("offerItems", { OfferId: id });
+            }
+
+
+          
+
+            //////////// enquiry ////////////
+
+            $scope.InitEnq = function () {
+                $scope.Enquiry = {
+                    Name: "",
+                    MobileNo: "",
+                    Remarks: "",
+                    Email: "",
+                }
+
+                
+
+                }
+            $scope.InitEnq();
+
+            $scope.EnquireNow = function () {
+
+                if ($scope.Enquiry.Name == "") {
+                    toastr.warning("Name Requiried");
+                } else if ($scope.Enquiry.MobileNo == "") {
+                    toastr.warning("MobileNo.  Requiried");
+                }
+                else if ($scope.Enquiry.Remarks == "") {
+                    toastr.warning("Message Requiried");
+                }
+                else {
+                    MainService.AddEnquiry($scope.Enquiry).then(function (response) {
+                        if (response.data) {
+                            toastr.success("Successfully Posted Enquiry");
+                            $scope.Enquiry = {
+                                Name: "",
+                                Phone: "",
+                                Remarks: "",
+                                Email: "",
+                            }
+                        }
+                    }, function (err) {
+                        toastr.error("Network Error");
+                    });
+                }
+            };
+
+
+            /////////// end enquiry ////////////
+
+
+            ////// logout ////
+
+            $scope.logOut = function () {
+                $scope.working = true;
+                LoginService.logOut()
+                    .then(function (response) {
+                        $scope.working = false;
+                        if (response) {
+                            AuthenticationService.removeTokenInfo();
+                            $scope.IsLoggedIn = false;
+                            var IsLoggedIn;
+                            $state.go("home");
+                        }
+                    }, function (err) {
+                        $scope.working = false;
+                    })
+            };
+
+            ///// end logout ////
+
+
+            $scope.sub = {
+                Name: "",
+                EmailId: "",
+            },
+
+                $scope.AddSuscription = function () {
+                if ($scope.sub.EmailId == "") {
+                        toastr.warning("Enter your emaill id");
+                    } else {
+                        $scope.load = 1;
+                        MainService.AdSubscription($scope.sub).then(function (response) {
+                            if (response.data) {
+                                toastr.success("Successfully subscribed");
+                                $scope.sub = {
+                                    Name: "",
+                                    EmailId: "",
+                                },
+                                    $scope.load = 0;
+                            } else {
+                                toastr.error("Error");
+                                $scope.load = 0;
+                            }
+                        }, function (err) {
+                            toastr.error("Network Error");
+                            $scope.load = 0;
+                        });
+                    }
+                }
+
+
+            $scope.UserUpdate = {
+                Password: "",
+                CPassword: "",
+                Id: "",
+            }
+
+            $scope.changePassword = function () {
+
+                $scope.UserUpdate.Id = $scope.TokenInfo.Id;
+
+                if ($scope.UserUpdate.Password == "") {
+                    toastr.error("Enter Password");
+                }
+                else if ($scope.UserUpdate.CPassword == "") {
+                    toastr.error("Confirm Password");
+                }
+                else if ($scope.UserUpdate.Password != $scope.UserUpdate.CPassword) {
+                    toastr.error("Password Mismatch");
+                    $scope.UserUpdate = {};
+                }
+                else {
+                    LoginService.ChangePassword($scope.UserUpdate).then(function (response) {
+                        if (response.data) {
+                            toastr.success("Successfully Changed Password");
+                            $scope.UserUpdate = {
+                                Password: "",
+                                CPassword: ""
+                            }
+                        }
+                    }, function (err) {
+                        toastr.error("Network Error");
+                    });
+                }
+            };
+
+        }])
